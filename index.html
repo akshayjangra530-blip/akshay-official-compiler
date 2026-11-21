@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>This Is Akshay Official Compiler</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="workspace-shell">
+    <!-- Left Vertical Expandable Strip (Starts collapsed; expands only when arrow is clicked) -->
+    <aside id="leftSidebar" class="left-sidebar" aria-label="Workspace Drawer">
+      <div class="sidebar-top">
+        <button id="sidebarArrowBtn" class="arrow-toggle-btn" type="button" aria-label="Expand or collapse panel" aria-expanded="false" title="Expand / Collapse">
+          <span id="sidebarArrowIcon" class="arrow-icon">&#9656;</span>
+        </button>
+        <span class="sidebar-title">More</span>
+        <span class="sidebar-dots" aria-hidden="true">&#8942;</span>
+      </div>
+
+      <div id="sidebarContent" class="sidebar-content">
+        <!-- Quick Notes / Scratchpad (Browser mein auto-save hota hai) -->
+        <section id="notesSection" class="drawer-card">
+          <h2>Quick Notes (Auto-Saved)</h2>
+          <p class="hint">Yahan jo bhi likhoge, wo tumhare is browser mein apne aap save ho jayega.</p>
+          <textarea id="quickNotes" placeholder="Aaj ke tasks, yaad rakhne wali baatein, ya notes likho..."></textarea>
+          <button id="clearNotes" class="btn secondary">Clear Notes</button>
+        </section>
+
+        <!-- Quick Links -->
+        <section id="linksSection" class="drawer-card">
+          <h2>Quick Links</h2>
+          <ul class="links">
+            <li><a href="https://leetcode.com" target="_blank" rel="noopener noreferrer">LeetCode</a></li>
+            <li><a href="https://nptel.ac.in" target="_blank" rel="noopener noreferrer">NPTEL</a></li>
+            <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+          </ul>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Main Right Workspace -->
+    <div class="main-area">
+      <header class="header">
+        <div>
+          <h1>This Is Akshay Official Compiler</h1>
+          <p class="subtitle">Offline C IDE • Error Line Mark • Open/Save .c • Bracket Match • Snippets • Find/Replace</p>
+        </div>
+
+        <div class="header-actions">
+          <button id="themeToggle" class="btn">Toggle Theme</button>
+        </div>
+      </header>
+
+      <main class="container">
+        <section class="card runner-card">
+          <!-- Compact Top Strip -->
+          <div class="card-top">
+            <div class="title-and-flags">
+              <h2>C Code Runner (gcc)</h2>
+              <div class="flags-group">
+                <label class="flag-check" title="Show compiler warnings (-Wall)">
+                  <input type="checkbox" id="flagWall" checked /> -Wall
+                </label>
+                <label class="flag-check" title="Link math library (-lm)">
+                  <input type="checkbox" id="flagLm" checked /> -lm
+                </label>
+                <select id="stdSelect" class="mini-select" title="C Standard">
+                  <option value="-std=c17" selected>C17</option>
+                  <option value="-std=c11">C11</option>
+                  <option value="-std=c99">C99</option>
+                </select>
+                <select id="snippetSelect" class="mini-select" title="Insert C Snippet">
+                  <option value="">+ Snippet</option>
+                  <option value="forloop">for Loop</option>
+                  <option value="whileloop">while Loop</option>
+                  <option value="switchcase">switch-case</option>
+                  <option value="arrayinput">Array Input/Print</option>
+                  <option value="structdef">struct Template</option>
+                </select>
+                <button id="openFileBtn" class="btn secondary mini-btn" type="button" title="Open .c / .h file">Open .c</button>
+                <button id="saveFileBtn" class="btn secondary mini-btn" type="button" title="Save current tab as .c file">Save .c</button>
+                <input id="filePickerInput" type="file" accept=".c,.h,.txt" style="display:none" />
+                <button id="formatCodeBtn" class="btn secondary mini-btn" type="button" title="Auto Format / Indent">Format</button>
+                <button id="findToggleBtn" class="btn secondary mini-btn" type="button" title="Find & Replace (Ctrl+F)">Find</button>
+              </div>
+            </div>
+
+            <div class="btn-group">
+              <button id="clearRunnerBtn" class="btn secondary" type="button">Clear</button>
+              <button id="runCBtn" class="btn" type="button" title="Run code (F9)">&#9654; Run (F9)</button>
+            </div>
+          </div>
+
+          <!-- File / Program Tabs Bar -->
+          <div id="fileTabsBar" class="file-tabs-bar" role="tablist">
+            <div id="tabsList" class="tabs-list"></div>
+            <button id="addTabBtn" class="tab-add-btn" type="button" title="New Tab">+ Tab</button>
+          </div>
+
+          <!-- Find & Replace Bar (Hidden by default; Ctrl+F / Ctrl+H) -->
+          <div id="findReplaceBar" class="find-replace-bar hidden-bar">
+            <input id="findInput" type="text" class="find-input" placeholder="Find..." />
+            <input id="replaceInput" type="text" class="find-input" placeholder="Replace with..." />
+            <button id="findNextBtn" class="btn secondary mini-btn" type="button">Next</button>
+            <button id="replaceOneBtn" class="btn secondary mini-btn" type="button">Replace</button>
+            <button id="replaceAllBtn" class="btn secondary mini-btn" type="button">Replace All</button>
+            <span id="findCountLabel" class="find-count">0 matches</span>
+            <button id="closeFindBtn" class="btn secondary mini-btn" type="button">&times;</button>
+          </div>
+
+          <!-- Half-Half Split Workspace -->
+          <div class="split-grid">
+            <!-- Left Half: Line Numbers + Syntax Highlight + Error/Bracket Marks + Editor + Autocomplete -->
+            <div class="pane-left">
+              <div class="pane-header-row">
+                <span class="output-label">C Code:</span>
+                <div class="output-meta-group">
+                  <span id="errorLineBadge" class="error-badge hidden-badge"></span>
+                  <span id="cursorPosLabel" class="meta-pill">Ln 1, Col 1</span>
+                </div>
+              </div>
+
+              <div class="editor-wrapper">
+                <div id="lineNumbers" class="line-numbers" aria-hidden="true">1</div>
+
+                <div class="code-surface">
+                  <div id="lineHighlightBackdrop" class="line-backdrop" aria-hidden="true"></div>
+                  <pre id="syntaxHighlightLayer" class="syntax-layer" aria-hidden="true"></pre>
+                  <textarea id="cCodeInput" class="code-editor" spellcheck="false" wrap="off"></textarea>
+                </div>
+
+                <ul id="autocompletePopup" class="autocomplete-popup hidden-popup" role="listbox" aria-label="Code suggestions"></ul>
+              </div>
+            </div>
+
+            <!-- Right Half: Output + Status/Time + Inline scanf Input -->
+            <div class="pane-right">
+              <div class="pane-header-row">
+                <span class="output-label">Output:</span>
+                <div class="output-meta-group">
+                  <span id="execMetaLabel" class="meta-pill">Ready</span>
+                  <button id="copyOutputBtn" class="btn secondary tiny-btn" type="button" title="Copy output">Copy</button>
+                </div>
+              </div>
+
+              <div id="outputSurface" class="output-box">
+                <pre id="cOutputText" class="output-text">Neeche "Run" (ya F9) dabao aur output dekho...</pre>
+
+                <div id="inlineInputBar" class="inline-input-bar hidden-bar">
+                  <span class="inline-prompt-label">Input &gt;</span>
+                  <input
+                    id="inlineStdinInput"
+                    type="text"
+                    class="inline-stdin-input"
+                    placeholder="scanf input likho (jaise 6 3) aur Enter dabao..."
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Shortcut Cheat Strip -->
+          <div class="shortcut-strip">
+            <span><b>F9</b> Run</span>
+            <span><b>Ctrl+S</b> Save</span>
+            <span><b>Tab/Enter</b> Suggestion</span>
+            <span><b>Ctrl+/</b> Comment</span>
+            <span><b>Ctrl+D</b> Duplicate</span>
+            <span><b>Ctrl+Shift+K</b> Delete Line</span>
+            <span><b>Alt+↑/↓</b> Move Line</span>
+            <span><b>Ctrl+F</b> Find/Replace</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Left Drawer & Quick Notes
+    const notesArea = document.getElementById("quickNotes");
+    const clearBtn = document.getElementById("clearNotes");
+    const themeBtn = document.getElementById("themeToggle");
+
+    notesArea.value = localStorage.getItem("personal_notes") || "";
+    notesArea.addEventListener("input", () => {
+      localStorage.setItem("personal_notes", notesArea.value);
+    });
+    clearBtn.addEventListener("click", () => {
+      notesArea.value = "";
+      localStorage.removeItem("personal_notes");
+    });
+    themeBtn.addEventListener("click", () => {
+      document.body.classList.toggle("light");
+    });
+
+    const leftSidebar = document.getElementById("leftSidebar");
+    const sidebarArrowBtn = document.getElementById("sidebarArrowBtn");
+    const sidebarArrowIcon = document.getElementById("sidebarArrowIcon");
+
+    sidebarArrowBtn.addEventListener("click", () => {
+      const isExpanded = leftSidebar.classList.toggle("expanded");
+      sidebarArrowBtn.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+      sidebarArrowIcon.innerHTML = isExpanded ? "&#9662;" : "&#9656;";
+    });
+
+    // Elements
+    const cCodeInput = document.getElementById("cCodeInput");
+    const syntaxHighlightLayer = document.getElementById("syntaxHighlightLayer");
+    const lineHighlightBackdrop = document.getElementById("lineHighlightBackdrop");
+    const lineNumbersEl = document.getElementById("lineNumbers");
+    const cursorPosLabel = document.getElementById("cursorPosLabel");
+    const errorLineBadge = document.getElementById("errorLineBadge");
+    const execMetaLabel = document.getElementById("execMetaLabel");
+    const copyOutputBtn = document.getElementById("copyOutputBtn");
+
+    const openFileBtn = document.getElementById("openFileBtn");
+    const saveFileBtn = document.getElementById("saveFileBtn");
+    const filePickerInput = document.getElementById("filePickerInput");
+
+    const runCBtn = document.getElementById("runCBtn");
+    const clearRunnerBtn = document.getElementById("clearRunnerBtn");
+    const cOutputText = document.getElementById("cOutputText");
+    const inlineInputBar = document.getElementById("inlineInputBar");
+    const inlineStdinInput = document.getElementById("inlineStdinInput");
+    const autocompletePopup = document.getElementById("autocompletePopup");
+
+    const flagWall = document.getElementById("flagWall");
+    const flagLm = document.getElementById("flagLm");
+    const stdSelect = document.getElementById("stdSelect");
+    const snippetSelect = document.getElementById("snippetSelect");
+    const formatCodeBtn = document.getElementById("formatCodeBtn");
+
+    const findToggleBtn = document.getElementById("findToggleBtn");
+    const findReplaceBar = document.getElementById("findReplaceBar");
+    const findInput = document.getElementById("findInput");
+    const replaceInput = document.getElementById("replaceInput");
+    const findNextBtn = document.getElementById("findNextBtn");
+    const replaceOneBtn = document.getElementById("replaceOneBtn");
+    const replaceAllBtn = document.getElementById("replaceAllBtn");
+    const findCountLabel = document.getElementById("findCountLabel");
+    const closeFindBtn = document.getElementById("closeFindBtn");
+
+    const tabsList = document.getElementById("tabsList");
+    const addTabBtn = document.getElementById("addTabBtn");
+
+    const DEFAULT_CODE = `#include <stdio.h>
+
+int main() {
+    int a, b;
+    printf("Enter two numbers: ");
+    if (scanf("%d %d", &a, &b) == 2) {
+        printf("Sum = %d\\n", a + b);
+    } else {
+        printf("Hello from real gcc!\\n");
+    }
+    return 0;
+}`;
+
+    const SNIPPETS = {
+      forloop: `for (int i = 0; i < n; i++) {\n    \n}`,
+      whileloop: `while (cond) {\n    \n}`,
+      switchcase: `switch (choice) {\n    case 1:\n        break;\n    default:\n        break;\n}`,
+      arrayinput: `int n;\nscanf("%d", &n);\nint arr[100];\nfor (int i = 0; i < n; i++) {\n    scanf("%d", &arr[i]);\n}`,
+      structdef: `struct Student {\n    int roll;\n    char name[50];\n};`
+    };
+
+    let tabs = [];
+    let activeTabId = null;
+    let errorLineNumber = null;
+    let errorLineKind = null;
+
+    function loadTabs() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("akshay_c_tabs_v1") || "null");
+        if (Array.isArray(saved) && saved.length > 0) {
+          tabs = saved;
+          activeTabId = localStorage.getItem("akshay_c_active_tab_v1") || tabs[0].id;
+          if (!tabs.some((t) => t.id === activeTabId)) activeTabId = tabs[0].id;
+          return;
+        }
+      } catch (_) {}
+
+      tabs = [
+        { id: "tab_1", name: "main.c", code: DEFAULT_CODE },
+        { id: "tab_2", name: "practice.c", code: `#include <stdio.h>\n\nint main() {\n    printf("Practice file\\n");\n    return 0;\n}` }
+      ];
+      activeTabId = "tab_1";
+    }
+
+    function saveTabs(showFeedback = false) {
+      const current = tabs.find((t) => t.id === activeTabId);
+      if (current) current.code = cCodeInput.value;
+      localStorage.setItem("akshay_c_tabs_v1", JSON.stringify(tabs));
+      localStorage.setItem("akshay_c_active_tab_v1", activeTabId);
+      if (showFeedback) {
+        execMetaLabel.textContent = "Saved";
+        setTimeout(() => {
+          if (execMetaLabel.textContent === "Saved") execMetaLabel.textContent = "Ready";
+        }, 1000);
+      }
+    }
+
+    function renderTabs() {
+      tabsList.innerHTML = "";
+      tabs.forEach((tab) => {
+        const wrap = document.createElement("div");
+        wrap.className = "tab-chip" + (tab.id === activeTabId ? " active" : "");
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tab-btn";
+        btn.textContent = tab.name;
+        btn.title = "Switch tab (Double-click to rename)";
+
+        btn.addEventListener("click", () => {
+          saveTabs();
+          activeTabId = tab.id;
+          cCodeInput.value = tab.code;
+          clearErrorMarker();
+          localStorage.setItem("akshay_c_active_tab_v1", activeTabId);
+          renderTabs();
+          syncEditorVisuals();
+          hideAutocomplete();
+          focusCodeEditor();
+        });
+
+        btn.addEventListener("dblclick", (e) => {
+          e.stopPropagation();
+          const nextName = prompt("Rename file tab:", tab.name);
+          if (nextName && nextName.trim()) {
+            let clean = nextName.trim();
+            if (!clean.endsWith(".c") && !clean.endsWith(".h")) clean += ".c";
+            tab.name = clean;
+            saveTabs();
+            renderTabs();
+          }
+        });
+
+        wrap.appendChild(btn);
+
+        if (tabs.length > 1) {
+          const closeBtn = document.createElement("button");
+          closeBtn.type = "button";
+          closeBtn.className = "tab-close-btn";
+          closeBtn.innerHTML = "&times;";
+          closeBtn.title = "Close tab";
+          closeBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const idx = tabs.findIndex((t) => t.id === tab.id);
+            tabs.splice(idx, 1);
+            if (activeTabId === tab.id) {
+              const next = tabs[Math.max(0, idx - 1)];
+              activeTabId = next.id;
+              cCodeInput.value = next.code;
+            }
+            clearErrorMarker();
+            saveTabs();
+            renderTabs();
+            syncEditorVisuals();
+            focusCodeEditor();
+          });
+          wrap.appendChild(closeBtn);
+        }
+
+        tabsList.appendChild(wrap);
+      });
+    }
+
+    addTabBtn.addEventListener("click", () => {
+      saveTabs();
+      const num = tabs.length + 1;
+      const newTab = {
+        id: "tab_" + Date.now(),
+        name: `file${num}.c`,
+        code: `#include <stdio.h>\n\nint main() {\n    \n    return 0;\n}`
+      };
+      tabs.push(newTab);
+      activeTabId = newTab.id;
+      cCodeInput.value = newTab.code;
+      clearErrorMarker();
+      saveTabs();
+      renderTabs();
+      syncEditorVisuals();
+      focusCodeEditor();
+    });
+
+    // Open & Save .c File on Disk
+    openFileBtn.addEventListener("click", () => {
+      filePickerInput.value = "";
+      filePickerInput.click();
+    });
+
+    filePickerInput.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const content = await file.text();
+      saveTabs();
+      const newTab = {
+        id: "tab_" + Date.now(),
+        name: file.name,
+        code: content
+      };
+      tabs.push(newTab);
+      activeTabId = newTab.id;
+      cCodeInput.value = content;
+      clearErrorMarker();
+      saveTabs();
+      renderTabs();
+      syncEditorVisuals();
+      focusCodeEditor();
+    });
+
+    saveFileBtn.addEventListener("click", () => {
+      saveTabs();
+      const current = tabs.find((t) => t.id === activeTabId);
+      const filename = current ? current.name : "program.c";
+      const blob = new Blob([cCodeInput.value], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      execMetaLabel.textContent = `Exported ${filename}`;
+    });
+
+    // Syntax Highlighting + Matching Bracket + Error Line Highlighting
+    const C_KW_SET = new Set([
+      "auto","break","case","char","const","continue","default","do","double",
+      "else","enum","extern","float","for","goto","if","inline","int","long",
+      "register","restrict","return","short","signed","sizeof","static","struct",
+      "switch","typedef","union","unsigned","void","volatile","while","_Bool",
+      "_Complex","_Imaginary"
+    ]);
+    const C_STD_SET = new Set([
+      "printf","scanf","fgets","puts","getchar","putchar","main","malloc",
+      "calloc","realloc","free","strlen","strcpy","strncpy","strcat","strcmp",
+      "abs","fabs","sqrt","pow","sin","cos","tan","EXIT_SUCCESS","EXIT_FAILURE","NULL"
+    ]);
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function findMatchingBracketIndex(code, cursorPos) {
+      const openMap = { "{": "}", "(": ")", "[": "]" };
+      const closeMap = { "}": "{", ")": "(", "]": "[" };
+
+      const candidates = [cursorPos, cursorPos - 1];
+      for (const idx of candidates) {
+        if (idx < 0 || idx >= code.length) continue;
+        const ch = code[idx];
+
+        if (openMap[ch]) {
+          const target = openMap[ch];
+          let depth = 0;
+          for (let i = idx; i < code.length; i++) {
+            if (code[i] === ch) depth++;
+            else if (code[i] === target) {
+              depth--;
+              if (depth === 0) return [idx, i];
+            }
+          }
+        } else if (closeMap[ch]) {
+          const target = closeMap[ch];
+          let depth = 0;
+          for (let i = idx; i >= 0; i--) {
+            if (code[i] === ch) depth++;
+            else if (code[i] === target) {
+              depth--;
+              if (depth === 0) return [i, idx];
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    function highlightCCode(code, bracketPair) {
+      const matchedSet = new Set(bracketPair || []);
+      const tokenRegex =
+        /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(?:<[^>]*>|"[^"]*")?|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?[fFlLuU]*)\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b|[\{\}\(\)\[\]])/g;
+
+      let out = "";
+      let lastIndex = 0;
+      let match;
+
+      while ((match = tokenRegex.exec(code)) !== null) {
+        if (match.index > lastIndex) {
+          out += escapeHtml(code.slice(lastIndex, match.index));
+        }
+
+        const tok = match[0];
+        const escaped = escapeHtml(tok);
+
+        if (tok.startsWith("//") || tok.startsWith("/*")) {
+          out += `<span class="tok-comment">${escaped}</span>`;
+        } else if (tok.startsWith("#")) {
+          out += `<span class="tok-preproc">${escaped}</span>`;
+        } else if (tok.startsWith('"') || tok.startsWith("'")) {
+          out += `<span class="tok-string">${escaped}</span>`;
+        } else if (/^(?:0[xX][0-9a-fA-F]+|\d)/.test(tok)) {
+          out += `<span class="tok-number">${escaped}</span>`;
+        } else if (C_KW_SET.has(tok)) {
+          out += `<span class="tok-keyword">${escaped}</span>`;
+        } else if (C_STD_SET.has(tok)) {
+          out += `<span class="tok-builtin">${escaped}</span>`;
+        } else if (/^[\{\}\(\)\[\]]$/.test(tok) && matchedSet.has(match.index)) {
+          out += `<span class="tok-bracket-match">${escaped}</span>`;
+        } else {
+          out += escaped;
+        }
+
+        lastIndex = tokenRegex.lastIndex;
+      }
+
+      if (lastIndex < code.length) {
+        out += escapeHtml(code.slice(lastIndex));
+      }
+
+      return out + "\n";
+    }
+
+    function renderLineBackdrop(lineCount, activeLine) {
+      let html = "";
+      for (let i = 1; i <= lineCount; i++) {
+        let cls = "backdrop-line";
+        if (errorLineNumber === i) {
+          cls += errorLineKind === "warning" ? " line-warning" : " line-error";
+        } else if (activeLine === i) {
+          cls += " line-active";
+        }
+        html += `<div class="${cls}"></div>`;
+      }
+      lineHighlightBackdrop.innerHTML = html;
+    }
+
+    function updateLineNumbersAndCursor() {
+      const val = cCodeInput.value;
+      const lines = val.split("\n");
+      const lineCount = lines.length;
+
+      let numsHtml = "";
+      for (let i = 1; i <= lineCount; i++) {
+        const errCls =
+          errorLineNumber === i
+            ? errorLineKind === "warning"
+              ? "ln-warn"
+              : "ln-err"
+            : "";
+        numsHtml += errCls ? `<span class="${errCls}">${i}</span>\n` : `${i}\n`;
+      }
+      lineNumbersEl.innerHTML = numsHtml;
+
+      const pos = cCodeInput.selectionStart || 0;
+      const before = val.slice(0, pos).split("\n");
+      const ln = before.length;
+      const col = before[before.length - 1].length + 1;
+      cursorPosLabel.textContent = `Ln ${ln}, Col ${col}`;
+
+      renderLineBackdrop(lineCount, ln);
+    }
+
+    function clearErrorMarker() {
+      errorLineNumber = null;
+      errorLineKind = null;
+      errorLineBadge.classList.add("hidden-badge");
+      errorLineBadge.textContent = "";
+    }
+
+    function detectCompilerLineFromOutput(outputText) {
+      if (!outputText) {
+        clearErrorMarker();
+        return;
+      }
+      const errMatch = outputText.match(/\.(?:c|h):(\d+):\d+:\s*(fatal error|error):/i);
+      if (errMatch) {
+        errorLineNumber = parseInt(errMatch[1], 10);
+        errorLineKind = "error";
+        errorLineBadge.textContent = `Error at Ln ${errorLineNumber}`;
+        errorLineBadge.className = "error-badge badge-error";
+        return;
+      }
+
+      const warnMatch = outputText.match(/\.(?:c|h):(\d+):\d+:\s*warning:/i);
+      if (warnMatch) {
+        errorLineNumber = parseInt(warnMatch[1], 10);
+        errorLineKind = "warning";
+        errorLineBadge.textContent = `Warning at Ln ${errorLineNumber}`;
+        errorLineBadge.className = "error-badge badge-warning";
+        return;
+      }
+
+      clearErrorMarker();
+    }
+
+    function syncEditorVisuals() {
+      const pos = cCodeInput.selectionStart || 0;
+      const bracketPair = findMatchingBracketIndex(cCodeInput.value, pos);
+      syntaxHighlightLayer.innerHTML = highlightCCode(cCodeInput.value, bracketPair);
+      syntaxHighlightLayer.scrollTop = cCodeInput.scrollTop;
+      syntaxHighlightLayer.scrollLeft = cCodeInput.scrollLeft;
+      lineHighlightBackdrop.scrollTop = cCodeInput.scrollTop;
+      lineHighlightBackdrop.scrollLeft = cCodeInput.scrollLeft;
+      lineNumbersEl.scrollTop = cCodeInput.scrollTop;
+      updateLineNumbersAndCursor();
+      saveTabs();
+      if (findReplaceBar && !findReplaceBar.classList.contains("hidden-bar")) {
+        updateFindMatchCount();
+      }
+    }
+
+    cCodeInput.addEventListener("scroll", () => {
+      syntaxHighlightLayer.scrollTop = cCodeInput.scrollTop;
+      syntaxHighlightLayer.scrollLeft = cCodeInput.scrollLeft;
+      lineHighlightBackdrop.scrollTop = cCodeInput.scrollTop;
+      lineHighlightBackdrop.scrollLeft = cCodeInput.scrollLeft;
+      lineNumbersEl.scrollTop = cCodeInput.scrollTop;
+    });
+
+    cCodeInput.addEventListener("click", () => {
+      syncEditorVisuals();
+      updateAutocompleteSuggestions();
+    });
+
+    cCodeInput.addEventListener("keyup", () => {
+      syncEditorVisuals();
+    });
+
+    // Format Code
+    function formatCCode(raw) {
+      const lines = raw.split("\n");
+      let indent = 0;
+      const formatted = [];
+
+      for (let line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          formatted.push("");
+          continue;
+        }
+        if (trimmed.startsWith("}")) {
+          indent = Math.max(0, indent - 1);
+        }
+        formatted.push("    ".repeat(indent) + trimmed);
+
+        const openBraces = (trimmed.match(/\{/g) || []).length;
+        const closeBraces = (trimmed.match(/\}/g) || []).length;
+        indent = Math.max(0, indent + openBraces - closeBraces);
+      }
+      return formatted.join("\n");
+    }
+
+    formatCodeBtn.addEventListener("click", () => {
+      cCodeInput.value = formatCCode(cCodeInput.value);
+      syncEditorVisuals();
+      focusCodeEditor();
+    });
+
+    snippetSelect.addEventListener("change", () => {
+      const key = snippetSelect.value;
+      if (!key || !SNIPPETS[key]) return;
+      const start = cCodeInput.selectionStart;
+      const end = cCodeInput.selectionEnd;
+      const val = cCodeInput.value;
+      cCodeInput.value = val.slice(0, start) + SNIPPETS[key] + val.slice(end);
+      snippetSelect.value = "";
+      syncEditorVisuals();
+      focusCodeEditor();
+    });
+
+    // Find & Replace
+    function openFindBar(focusReplace = false) {
+      findReplaceBar.classList.remove("hidden-bar");
+      updateFindMatchCount();
+      requestAnimationFrame(() => {
+        if (focusReplace) replaceInput.focus();
+        else findInput.focus();
+      });
+    }
+
+    function closeFindBar() {
+      findReplaceBar.classList.add("hidden-bar");
+      focusCodeEditor();
+    }
+
+    function updateFindMatchCount() {
+      const q = findInput.value;
+      if (!q) {
+        findCountLabel.textContent = "0 matches";
+        return;
+      }
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const matches = cCodeInput.value.match(new RegExp(escaped, "g"));
+      findCountLabel.textContent = `${matches ? matches.length : 0} matches`;
+    }
+
+    function findNextMatch() {
+      const q = findInput.value;
+      if (!q) return;
+      const text = cCodeInput.value;
+      const startFrom = cCodeInput.selectionEnd || 0;
+      let idx = text.indexOf(q, startFrom);
+      if (idx === -1) idx = text.indexOf(q, 0);
+      if (idx !== -1) {
+        cCodeInput.focus();
+        cCodeInput.setSelectionRange(idx, idx + q.length);
+        syncEditorVisuals();
+      }
+      updateFindMatchCount();
+    }
+
+    findToggleBtn.addEventListener("click", () => {
+      if (findReplaceBar.classList.contains("hidden-bar")) openFindBar(false);
+      else closeFindBar();
+    });
+    closeFindBtn.addEventListener("click", closeFindBar);
+    findInput.addEventListener("input", updateFindMatchCount);
+    findInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        findNextMatch();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        closeFindBar();
+      }
+    });
+    findNextBtn.addEventListener("click", findNextMatch);
+
+    replaceOneBtn.addEventListener("click", () => {
+      const q = findInput.value;
+      if (!q) return;
+      const rep = replaceInput.value;
+      const selStart = cCodeInput.selectionStart;
+      const selEnd = cCodeInput.selectionEnd;
+      const selected = cCodeInput.value.slice(selStart, selEnd);
+
+      if (selected === q) {
+        cCodeInput.value =
+          cCodeInput.value.slice(0, selStart) + rep + cCodeInput.value.slice(selEnd);
+        cCodeInput.setSelectionRange(selStart + rep.length, selStart + rep.length);
+        syncEditorVisuals();
+      }
+      findNextMatch();
+    });
+
+    replaceAllBtn.addEventListener("click", () => {
+      const q = findInput.value;
+      if (!q) return;
+      const rep = replaceInput.value;
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      cCodeInput.value = cCodeInput.value.replace(new RegExp(escaped, "g"), rep);
+      syncEditorVisuals();
+      focusCodeEditor();
+    });
+
+    // Autocomplete Suggestions
+    const C_KEYWORDS = [
+      { label: "int", insertText: "int ", kind: "keyword" },
+      { label: "float", insertText: "float ", kind: "keyword" },
+      { label: "double", insertText: "double ", kind: "keyword" },
+      { label: "char", insertText: "char ", kind: "keyword" },
+      { label: "void", insertText: "void ", kind: "keyword" },
+      { label: "long", insertText: "long ", kind: "keyword" },
+      { label: "short", insertText: "short ", kind: "keyword" },
+      { label: "unsigned", insertText: "unsigned ", kind: "keyword" },
+      { label: "const", insertText: "const ", kind: "keyword" },
+      { label: "struct", insertText: "struct ", kind: "keyword" },
+      { label: "typedef", insertText: "typedef ", kind: "keyword" },
+      { label: "if", insertText: "if ()", kind: "keyword", cursorOffset: -1 },
+      { label: "else", insertText: "else ", kind: "keyword" },
+      { label: "else if", insertText: "else if ()", kind: "keyword", cursorOffset: -1 },
+      { label: "for", insertText: "for ()", kind: "keyword", cursorOffset: -1 },
+      { label: "while", insertText: "while ()", kind: "keyword", cursorOffset: -1 },
+      { label: "do", insertText: "do {\n    \n} while ();", kind: "keyword" },
+      { label: "switch", insertText: "switch ()", kind: "keyword", cursorOffset: -1 },
+      { label: "case", insertText: "case :", kind: "keyword", cursorOffset: -1 },
+      { label: "default", insertText: "default:", kind: "keyword" },
+      { label: "break", insertText: "break;", kind: "keyword" },
+      { label: "continue", insertText: "continue;", kind: "keyword" },
+      { label: "return", insertText: "return 0;", kind: "keyword" },
+      { label: "sizeof", insertText: "sizeof()", kind: "keyword", cursorOffset: -1 },
+      { label: "printf", insertText: "printf(\"\");", kind: "func", cursorOffset: -3 },
+      { label: "scanf", insertText: "scanf(\"\", );", kind: "func", cursorOffset: -4 },
+      { label: "fgets", insertText: "fgets(, , stdin);", kind: "func" },
+      { label: "strlen", insertText: "strlen()", kind: "func", cursorOffset: -1 },
+      { label: "strcpy", insertText: "strcpy(, );", kind: "func" },
+      { label: "strcmp", insertText: "strcmp(, );", kind: "func" },
+      { label: "malloc", insertText: "malloc(sizeof())", kind: "func", cursorOffset: -2 },
+      { label: "free", insertText: "free();", kind: "func", cursorOffset: -2 },
+      { label: "main", insertText: "int main() {\n    \n    return 0;\n}", kind: "snippet" },
+      { label: "#include <stdio.h>", insertText: "#include <stdio.h>", kind: "snippet" },
+      { label: "#include <stdlib.h>", insertText: "#include <stdlib.h>", kind: "snippet" },
+      { label: "#include <string.h>", insertText: "#include <string.h>", kind: "snippet" },
+      { label: "#include <math.h>", insertText: "#include <math.h>", kind: "snippet" }
+    ];
+
+    let currentSuggestions = [];
+    let selectedSuggestionIndex = 0;
+    let currentTokenRange = { start: 0, end: 0, text: "" };
+
+    function isPopupOpen() {
+      return !autocompletePopup.classList.contains("hidden-popup") && currentSuggestions.length > 0;
+    }
+
+    function hideAutocomplete() {
+      autocompletePopup.classList.add("hidden-popup");
+      autocompletePopup.innerHTML = "";
+      currentSuggestions = [];
+      selectedSuggestionIndex = 0;
+    }
+
+    function getCurrentWordToken(textarea) {
+      const pos = textarea.selectionStart;
+      const beforeCursor = textarea.value.slice(0, pos);
+
+      const includeMatch = beforeCursor.match(/(#include\s*<[^>]*|#include[^\s]*)$/);
+      if (includeMatch) {
+        const tokenText = includeMatch[1];
+        return { start: pos - tokenText.length, end: pos, text: tokenText };
+      }
+
+      const wordMatch = beforeCursor.match(/([A-Za-z_][A-Za-z0-9_]*)$/);
+      if (!wordMatch) return { start: pos, end: pos, text: "" };
+
+      const tokenText = wordMatch[1];
+      return { start: pos - tokenText.length, end: pos, text: tokenText };
+    }
+
+    function extractUserIdentifiers(code, currentTokenStart, currentTokenEnd) {
+      const cleaned =
+        code.slice(0, currentTokenStart) +
+        " ".repeat(Math.max(0, currentTokenEnd - currentTokenStart)) +
+        code.slice(currentTokenEnd);
+
+      const withoutStrings = cleaned.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, " ");
+      const withoutComments = withoutStrings
+        .replace(/\/\/.*$/gm, " ")
+        .replace(/\/\*[\s\S]*?\*\//g, " ");
+
+      const keywordNames = new Set(
+        C_KEYWORDS.map((item) => item.label.toLowerCase()).concat([
+          "main", "printf", "scanf", "include", "stdio", "h"
+        ])
+      );
+
+      const matches = withoutComments.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g) || [];
+      const seen = new Set();
+      const userItems = [];
+
+      for (const id of matches) {
+        const lower = id.toLowerCase();
+        if (!seen.has(lower) && !keywordNames.has(lower)) {
+          seen.add(lower);
+          userItems.push({ label: id, insertText: id, kind: "var" });
+        }
+      }
+      return userItems;
+    }
+
+    function renderAutocompletePopup() {
+      autocompletePopup.innerHTML = "";
+      currentSuggestions.forEach((item, idx) => {
+        const li = document.createElement("li");
+        li.className = "autocomplete-item" + (idx === selectedSuggestionIndex ? " active" : "");
+        li.setAttribute("role", "option");
+
+        const labelSpan = document.createElement("span");
+        labelSpan.className = "suggestion-label";
+        labelSpan.textContent = item.label;
+
+        const kindSpan = document.createElement("span");
+        kindSpan.className = "suggestion-kind";
+        kindSpan.textContent = item.kind;
+
+        li.appendChild(labelSpan);
+        li.appendChild(kindSpan);
+
+        li.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          applySuggestion(item);
+        });
+
+        autocompletePopup.appendChild(li);
+      });
+
+      autocompletePopup.classList.remove("hidden-popup");
+      const activeEl = autocompletePopup.children[selectedSuggestionIndex];
+      if (activeEl) activeEl.scrollIntoView({ block: "nearest" });
+    }
+
+    function updateAutocompleteSuggestions() {
+      const token = getCurrentWordToken(cCodeInput);
+      currentTokenRange = token;
+
+      if (!token.text || token.text.length < 1) {
+        hideAutocomplete();
+        return;
+      }
+
+      const query = token.text.toLowerCase();
+      const userVars = extractUserIdentifiers(cCodeInput.value, token.start, token.end);
+      const pool = [...userVars, ...C_KEYWORDS];
+
+      const startsWithMatches = pool.filter((item) =>
+        item.label.toLowerCase().startsWith(query)
+      );
+      const includesMatches = pool.filter(
+        (item) =>
+          !item.label.toLowerCase().startsWith(query) &&
+          item.label.toLowerCase().includes(query)
+      );
+
+      const combined = [...startsWithMatches, ...includesMatches].slice(0, 8);
+      if (
+        combined.length === 0 ||
+        (combined.length === 1 &&
+          combined[0].label.toLowerCase() === query &&
+          token.text.length >= combined[0].label.length)
+      ) {
+        hideAutocomplete();
+        return;
+      }
+
+      currentSuggestions = combined;
+      selectedSuggestionIndex = 0;
+      renderAutocompletePopup();
+    }
+
+    function applySuggestion(suggestion) {
+      if (!suggestion) return;
+      const val = cCodeInput.value;
+      const before = val.slice(0, currentTokenRange.start);
+      const after = val.slice(currentTokenRange.end);
+      const inserted = suggestion.insertText;
+
+      cCodeInput.value = before + inserted + after;
+      const newCursorPos = suggestion.cursorOffset
+        ? before.length + inserted.length + suggestion.cursorOffset
+        : before.length + inserted.length;
+
+      hideAutocomplete();
+      syncEditorVisuals();
+
+      requestAnimationFrame(() => {
+        cCodeInput.focus();
+        cCodeInput.setSelectionRange(newCursorPos, newCursorPos);
+        updateLineNumbersAndCursor();
+      });
+    }
+
+    // Editor Shortcuts
+    const PAIRS = { "{": "}", "(": ")", "[": "]", '"': '"', "'": "'" };
+
+    cCodeInput.addEventListener("input", () => {
+      syncEditorVisuals();
+      updateAutocompleteSuggestions();
+    });
+
+    cCodeInput.addEventListener("blur", () => {
+      setTimeout(() => {
+        if (document.activeElement !== cCodeInput) hideAutocomplete();
+      }, 120);
+    });
+
+    cCodeInput.addEventListener("keydown", (e) => {
+      if (isPopupOpen()) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          selectedSuggestionIndex = (selectedSuggestionIndex + 1) % currentSuggestions.length;
+          renderAutocompletePopup();
+          return;
+        }
+        if (e.key === "ArrowUp") {
+          e.preventDefault();
+          selectedSuggestionIndex =
+            (selectedSuggestionIndex - 1 + currentSuggestions.length) % currentSuggestions.length;
+          renderAutocompletePopup();
+          return;
+        }
+        if (e.key === "Enter" || e.key === "Tab") {
+          e.preventDefault();
+          applySuggestion(currentSuggestions[selectedSuggestionIndex]);
+          return;
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          hideAutocomplete();
+          return;
+        }
+      }
+
+      const start = cCodeInput.selectionStart;
+      const end = cCodeInput.selectionEnd;
+      const val = cCodeInput.value;
+
+      // Ctrl + Shift + K : Delete Current Line
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        const lineStart = val.lastIndexOf("\n", start - 1) + 1;
+        const lineEndIdx = val.indexOf("\n", start);
+        const nextVal =
+          lineEndIdx === -1
+            ? val.slice(0, Math.max(0, lineStart - 1))
+            : val.slice(0, lineStart) + val.slice(lineEndIdx + 1);
+        cCodeInput.value = nextVal;
+        const nextPos = Math.min(lineStart, nextVal.length);
+        cCodeInput.setSelectionRange(nextPos, nextPos);
+        syncEditorVisuals();
+        return;
+      }
+
+      // Ctrl + / : Toggle Line Comment
+      if ((e.ctrlKey || e.metaKey) && e.key === "/") {
+        e.preventDefault();
+        const lineStart = val.lastIndexOf("\n", start - 1) + 1;
+        const lineEndIdx = val.indexOf("\n", end);
+        const lineEnd = lineEndIdx === -1 ? val.length : lineEndIdx;
+        const block = val.slice(lineStart, lineEnd);
+        const lines = block.split("\n");
+        const allCommented = lines.every((l) => l.trimStart().startsWith("//"));
+        const updated = lines
+          .map((l) =>
+            allCommented ? l.replace(/^(\s*)\/\/\s?/, "$1") : "// " + l
+          )
+          .join("\n");
+
+        cCodeInput.value = val.slice(0, lineStart) + updated + val.slice(lineEnd);
+        cCodeInput.setSelectionRange(lineStart, lineStart + updated.length);
+        syncEditorVisuals();
+        return;
+      }
+
+      // Ctrl + D : Duplicate Current Line
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        const lineStart = val.lastIndexOf("\n", start - 1) + 1;
+        const lineEndIdx = val.indexOf("\n", start);
+        const lineEnd = lineEndIdx === -1 ? val.length : lineEndIdx;
+        const currentLine = val.slice(lineStart, lineEnd);
+        cCodeInput.value =
+          val.slice(0, lineEnd) + "\n" + currentLine + val.slice(lineEnd);
+        cCodeInput.setSelectionRange(lineEnd + 1, lineEnd + 1 + currentLine.length);
+        syncEditorVisuals();
+        return;
+      }
+
+      // Alt + ArrowUp / ArrowDown : Move Current Line
+      if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+        e.preventDefault();
+        const lines = val.split("\n");
+        const lineIdx = val.slice(0, start).split("\n").length - 1;
+        const targetIdx = e.key === "ArrowUp" ? lineIdx - 1 : lineIdx + 1;
+        if (targetIdx < 0 || targetIdx >= lines.length) return;
+
+        const temp = lines[lineIdx];
+        lines[lineIdx] = lines[targetIdx];
+        lines[targetIdx] = temp;
+        cCodeInput.value = lines.join("\n");
+        syncEditorVisuals();
+        return;
+      }
+
+      // Tab : Insert 4 spaces
+      if (e.key === "Tab") {
+        e.preventDefault();
+        cCodeInput.value = val.slice(0, start) + "    " + val.slice(end);
+        cCodeInput.setSelectionRange(start + 4, start + 4);
+        syncEditorVisuals();
+        return;
+      }
+
+      // Smart Enter with Auto-Indent & Brace Expansion
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const lineStart = val.lastIndexOf("\n", start - 1) + 1;
+        const currentLineBeforeCursor = val.slice(lineStart, start);
+        const baseIndentMatch = currentLineBeforeCursor.match(/^\s*/);
+        const baseIndent = baseIndentMatch ? baseIndentMatch[0] : "";
+        const charBefore = val[start - 1];
+        const charAfter = val[end];
+
+        if (charBefore === "{" && charAfter === "}") {
+          const innerIndent = baseIndent + "    ";
+          const insertion = `\n${innerIndent}\n${baseIndent}`;
+          cCodeInput.value = val.slice(0, start) + insertion + val.slice(end);
+          const cursorAt = start + 1 + innerIndent.length;
+          cCodeInput.setSelectionRange(cursorAt, cursorAt);
+        } else {
+          const extraIndent = charBefore === "{" ? "    " : "";
+          const insertion = `\n${baseIndent}${extraIndent}`;
+          cCodeInput.value = val.slice(0, start) + insertion + val.slice(end);
+          const cursorAt = start + insertion.length;
+          cCodeInput.setSelectionRange(cursorAt, cursorAt);
+        }
+        syncEditorVisuals();
+        return;
+      }
+
+      // Auto-Closing Brackets & Quotes
+      if (PAIRS[e.key] && start === end) {
+        const closeChar = PAIRS[e.key];
+        const nextChar = val[start];
+        if ((e.key === '"' || e.key === "'") && nextChar === e.key) {
+          e.preventDefault();
+          cCodeInput.setSelectionRange(start + 1, start + 1);
+          updateLineNumbersAndCursor();
+          return;
+        }
+        e.preventDefault();
+        cCodeInput.value = val.slice(0, start) + e.key + closeChar + val.slice(end);
+        cCodeInput.setSelectionRange(start + 1, start + 1);
+        syncEditorVisuals();
+        return;
+      }
+    });
+
+    // Global Shortcuts: F9 (Run), Ctrl+S (Save), Ctrl+F (Find), Ctrl+H (Replace)
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "F9") {
+        e.preventDefault();
+        triggerRunFlow();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        saveTabs(true);
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        openFindBar(false);
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "h") {
+        e.preventDefault();
+        openFindBar(true);
+      }
+    });
+
+    // Runner & Inline scanf Flow
+    function focusCodeEditor() {
+      requestAnimationFrame(() => {
+        cCodeInput.focus();
+        syncEditorVisuals();
+      });
+    }
+
+    function focusStdinInput() {
+      requestAnimationFrame(() => {
+        inlineStdinInput.focus();
+      });
+    }
+
+    function needsScanf(code) {
+      const withoutLineComments = code.replace(/\/\/.*$/gm, "");
+      const withoutBlockComments = withoutLineComments.replace(/\/\*[\s\S]*?\*\//g, "");
+      return /\b(scanf|fscanf|scanf_s)\s*\(/.test(withoutBlockComments);
+    }
+
+    function hideInputBar() {
+      inlineInputBar.classList.add("hidden-bar");
+      inlineStdinInput.value = "";
+    }
+
+    function showInputBar() {
+      inlineInputBar.classList.remove("hidden-bar");
+      inlineStdinInput.value = "";
+      focusStdinInput();
+    }
+
+    function getSelectedFlags() {
+      const flags = [stdSelect.value];
+      if (flagWall.checked) flags.push("-Wall");
+      if (flagLm.checked) flags.push("-lm");
+      return flags;
+    }
+
+    async function executeCCode(stdinValue) {
+      if (runCBtn.disabled) return;
+      saveTabs();
+      clearErrorMarker();
+      hideAutocomplete();
+      hideInputBar();
+      runCBtn.disabled = true;
+      runCBtn.textContent = "Compiling...";
+      execMetaLabel.textContent = "Running...";
+      cOutputText.textContent = "gcc se compile aur run ho raha hai...";
+
+      const t0 = performance.now();
+      try {
+        const res = await fetch("/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: cCodeInput.value,
+            input: stdinValue,
+            flags: getSelectedFlags(),
+            check_only: false
+          })
+        });
+
+        const data = await res.json();
+        const elapsed = Math.round(performance.now() - t0);
+        cOutputText.textContent = data.output;
+        detectCompilerLineFromOutput(data.output);
+        execMetaLabel.textContent = `Done • ${elapsed} ms`;
+      } catch (err) {
+        cOutputText.textContent =
+          "Connection Error: Kya app.py chal raha hai? (" + err.message + ")";
+        execMetaLabel.textContent = "Error";
+      } finally {
+        runCBtn.disabled = false;
+        runCBtn.textContent = "\u25B6 Run (F9)";
+        focusCodeEditor();
+      }
+    }
+
+    async function triggerRunFlow() {
+      if (runCBtn.disabled) return;
+      saveTabs();
+      clearErrorMarker();
+      hideAutocomplete();
+      hideInputBar();
+
+      const code = cCodeInput.value;
+      if (!needsScanf(code)) {
+        executeCCode("");
+        return;
+      }
+
+      runCBtn.disabled = true;
+      runCBtn.textContent = "Checking...";
+      execMetaLabel.textContent = "Checking syntax...";
+      cOutputText.textContent = "Compile check ho raha hai...";
+
+      const t0 = performance.now();
+      try {
+        const res = await fetch("/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code,
+            input: "",
+            flags: getSelectedFlags(),
+            check_only: true
+          })
+        });
+
+        const data = await res.json();
+        const elapsed = Math.round(performance.now() - t0);
+
+        if (data.compile_ok === false) {
+          cOutputText.textContent = data.output;
+          detectCompilerLineFromOutput(data.output);
+          execMetaLabel.textContent = `Compile Error • ${elapsed} ms`;
+          runCBtn.disabled = false;
+          runCBtn.textContent = "\u25B6 Run (F9)";
+          focusCodeEditor();
+          return;
+        }
+
+        runCBtn.disabled = false;
+        runCBtn.textContent = "\u25B6 Run (F9)";
+        execMetaLabel.textContent = "Waiting for input";
+        cOutputText.textContent =
+          "Compile OK — scanf input likho aur Enter dabao:";
+        showInputBar();
+      } catch (err) {
+        cOutputText.textContent =
+          "Connection Error: Kya app.py chal raha hai? (" + err.message + ")";
+        execMetaLabel.textContent = "Error";
+        runCBtn.disabled = false;
+        runCBtn.textContent = "\u25B6 Run (F9)";
+        focusCodeEditor();
+      }
+    }
+
+    runCBtn.addEventListener("click", triggerRunFlow);
+
+    inlineStdinInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        executeCCode(inlineStdinInput.value);
+      }
+    });
+
+    clearRunnerBtn.addEventListener("click", () => {
+      cCodeInput.value = "";
+      cOutputText.textContent = "";
+      clearErrorMarker();
+      execMetaLabel.textContent = "Cleared";
+      hideAutocomplete();
+      hideInputBar();
+      syncEditorVisuals();
+      focusCodeEditor();
+    });
+
+    copyOutputBtn.addEventListener("click", () => {
+      const txt = cOutputText.textContent || "";
+      if (!txt) return;
+      navigator.clipboard?.writeText(txt).catch(() => {});
+      const prev = copyOutputBtn.textContent;
+      copyOutputBtn.textContent = "Copied";
+      setTimeout(() => {
+        copyOutputBtn.textContent = prev;
+      }, 900);
+    });
+
+    // Init
+    loadTabs();
+    renderTabs();
+    const initialTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
+    cCodeInput.value = initialTab ? initialTab.code : DEFAULT_CODE;
+    syncEditorVisuals();
+  </script>
+</body>
+</html>
