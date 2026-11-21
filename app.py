@@ -17,6 +17,9 @@ class CompilerHandler(BaseHTTPRequestHandler):
         elif clean_path == "/style.css":
             file_path = os.path.join(BASE_DIR, "style.css")
             content_type = "text/css; charset=utf-8"
+        elif clean_path == "/google37389b62083ed2a1.html":
+            file_path = os.path.join(BASE_DIR, "google37389b62083ed2a1.html")
+            content_type = "text/html; charset=utf-8"
         elif clean_path == "/robots.txt":
             body = (
                 "User-agent: *\n"
