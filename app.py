@@ -17,6 +17,35 @@ class CompilerHandler(BaseHTTPRequestHandler):
         elif clean_path == "/style.css":
             file_path = os.path.join(BASE_DIR, "style.css")
             content_type = "text/css; charset=utf-8"
+        elif clean_path == "/robots.txt":
+            body = (
+                "User-agent: *\n"
+                "Allow: /\n\n"
+                "Sitemap: https://akshay-official-compiler.onrender.com/sitemap.xml\n"
+            ).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        elif clean_path == "/sitemap.xml":
+            body = (
+                '<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                "  <url>\n"
+                "    <loc>https://akshay-official-compiler.onrender.com/</loc>\n"
+                "    <changefreq>weekly</changefreq>\n"
+                "    <priority>1.0</priority>\n"
+                "  </url>\n"
+                "</urlset>\n"
+            ).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/xml; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         else:
             self.send_response(404)
             self.end_headers()

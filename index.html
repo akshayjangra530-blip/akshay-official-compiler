@@ -3,7 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>This Is Akshay Official Compiler</title>
+  <title>This Is Akshay Official Compiler — Online C Code Runner</title>
+  <meta
+    name="description"
+    content="This Is Akshay Official Compiler is a browser-based C code editor and gcc compiler with syntax highlighting, bracket matching, line error markers, scanf input support, and multi-tab editing."
+  />
+  <meta
+    name="keywords"
+    content="This Is Akshay Official Compiler, Akshay Official Compiler, online C compiler, run C code online, gcc online compiler, C IDE"
+  />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://akshay-official-compiler.onrender.com/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="This Is Akshay Official Compiler — Online C Code Runner" />
+  <meta
+    property="og:description"
+    content="Compile and run C programs online with real gcc, scanf support, syntax highlighting, and keyboard shortcuts."
+  />
+  <meta property="og:url" content="https://akshay-official-compiler.onrender.com/" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "This Is Akshay Official Compiler",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Any (Web Browser)",
+    "url": "https://akshay-official-compiler.onrender.com/",
+    "description": "Online C code editor and gcc runner with multi-tab support, scanf input handling, and error line highlighting."
+  }
+  </script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -1208,7 +1238,7 @@ int main() {
         execMetaLabel.textContent = `Done • ${elapsed} ms`;
       } catch (err) {
         cOutputText.textContent =
-          "Connection Error: Kya app.py chal raha hai? (" + err.message + ")";
+          "Connection Error: Kya server chal raha hai? (" + err.message + ")";
         execMetaLabel.textContent = "Error";
       } finally {
         runCBtn.disabled = false;
@@ -1269,7 +1299,7 @@ int main() {
         showInputBar();
       } catch (err) {
         cOutputText.textContent =
-          "Connection Error: Kya app.py chal raha hai? (" + err.message + ")";
+          "Connection Error: Kya server chal raha hai? (" + err.message + ")";
         execMetaLabel.textContent = "Error";
         runCBtn.disabled = false;
         runCBtn.textContent = "\u25B6 Run (F9)";
