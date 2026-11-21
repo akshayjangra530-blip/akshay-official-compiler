@@ -35,6 +35,143 @@
   }
   </script>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .code-surface {
+      position: relative;
+      background: #14171f;
+      color: #f8f8f2;
+      overflow: hidden;
+    }
+    .line-backdrop {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .backdrop-line {
+      height: 1.5em;
+    }
+    .backdrop-line.line-active {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .backdrop-line.line-error {
+      background: rgba(249, 38, 114, 0.22);
+    }
+    .backdrop-line.line-warning {
+      background: rgba(230, 219, 116, 0.18);
+    }
+    .syntax-layer,
+    .code-editor {
+      position: relative;
+      z-index: 2;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 15px;
+      line-height: 1.5;
+      tab-size: 4;
+      white-space: pre;
+    }
+    .syntax-layer {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      padding: 12px;
+      pointer-events: none;
+      color: #f8f8f2;
+      overflow: hidden;
+    }
+    .code-editor {
+      width: 100%;
+      height: 100%;
+      padding: 12px;
+      background: transparent;
+      color: transparent;
+      caret-color: #f8f8f0;
+      border: none;
+      outline: none;
+      resize: none;
+    }
+
+    /* Distinct syntax token colours */
+    .tok-comment {
+      color: #75715e;
+      font-style: italic;
+    }
+    .tok-preproc {
+      color: #fd971f;
+    }
+    .tok-keyword {
+      color: #f9a825;
+      font-weight: 600;
+    }
+    .tok-main {
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .tok-builtin {
+      color: #ef5350;
+      font-weight: 500;
+    }
+    .tok-string {
+      color: #4ade80;
+    }
+    .tok-fmt {
+      color: #facc15;
+      font-weight: 600;
+    }
+    .tok-escape {
+      color: #c084fc;
+    }
+    .tok-addr {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+    .tok-number {
+      color: #fb7185;
+    }
+    .tok-bracket-match {
+      background: rgba(255, 213, 79, 0.25);
+      outline: 1px solid #ffd54f;
+      border-radius: 2px;
+    }
+
+    body.light .code-surface {
+      background: #fafafa;
+      color: #1e1e1e;
+    }
+    body.light .syntax-layer {
+      color: #1e1e1e;
+    }
+    body.light .code-editor {
+      caret-color: #1e1e1e;
+    }
+    body.light .tok-main {
+      color: #111111;
+    }
+    body.light .tok-keyword {
+      color: #b26a00;
+    }
+    body.light .tok-preproc {
+      color: #c65102;
+    }
+    body.light .tok-builtin {
+      color: #c62828;
+    }
+    body.light .tok-string {
+      color: #15803d;
+    }
+    body.light .tok-fmt {
+      color: #a16207;
+    }
+    body.light .tok-escape {
+      color: #7e22ce;
+    }
+    body.light .tok-addr {
+      color: #0284c7;
+    }
+    body.light .tok-number {
+      color: #be123c;
+    }
+  </style>
 </head>
 <body>
   <div class="workspace-shell">
@@ -467,7 +604,7 @@ int main() {
       "_Complex","_Imaginary"
     ]);
     const C_STD_SET = new Set([
-      "printf","scanf","fgets","puts","getchar","putchar","main","malloc",
+      "printf","scanf","fgets","puts","getchar","putchar","malloc",
       "calloc","realloc","free","strlen","strcpy","strncpy","strcat","strcmp",
       "abs","fabs","sqrt","pow","sin","cos","tan","EXIT_SUCCESS","EXIT_FAILURE","NULL"
     ]);
@@ -477,6 +614,29 @@ int main() {
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
+    }
+
+    function highlightStringLiteral(strToken) {
+      const innerRegex =
+        /(%[+\-#0 ]*\d*(?:\.\d+)?(?:hh|h|ll|l|j|z|t|L)?[diuoxXfFeEgGaAcsSpn%]|\\(?:[abefnrtv\\'"?]|x[0-9a-fA-F]+|[0-7]{1,3}))/g;
+      let result = "";
+      let last = 0;
+      let m;
+
+      while ((m = innerRegex.exec(strToken)) !== null) {
+        if (m.index > last) {
+          result += `<span class="tok-string">${escapeHtml(strToken.slice(last, m.index))}</span>`;
+        }
+        const part = m[0];
+        const cls = part.startsWith("%") ? "tok-fmt" : "tok-escape";
+        result += `<span class="${cls}">${escapeHtml(part)}</span>`;
+        last = innerRegex.lastIndex;
+      }
+
+      if (last < strToken.length) {
+        result += `<span class="tok-string">${escapeHtml(strToken.slice(last))}</span>`;
+      }
+      return result;
     }
 
     function findMatchingBracketIndex(code, cursorPos) {
@@ -516,7 +676,7 @@ int main() {
     function highlightCCode(code, bracketPair) {
       const matchedSet = new Set(bracketPair || []);
       const tokenRegex =
-        /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(?:<[^>]*>|"[^"]*")?|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?[fFlLuU]*)\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b|[\{\}\(\)\[\]])/g;
+        /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(?:<[^>]*>|"[^"]*")?|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?[fFlLuU]*)\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b|&(?!&)|[\{\}\(\)\[\]])/g;
 
       let out = "";
       let lastIndex = 0;
@@ -535,9 +695,13 @@ int main() {
         } else if (tok.startsWith("#")) {
           out += `<span class="tok-preproc">${escaped}</span>`;
         } else if (tok.startsWith('"') || tok.startsWith("'")) {
-          out += `<span class="tok-string">${escaped}</span>`;
+          out += highlightStringLiteral(tok);
+        } else if (tok === "&") {
+          out += `<span class="tok-addr">${escaped}</span>`;
         } else if (/^(?:0[xX][0-9a-fA-F]+|\d)/.test(tok)) {
           out += `<span class="tok-number">${escaped}</span>`;
+        } else if (tok === "main") {
+          out += `<span class="tok-main">${escaped}</span>`;
         } else if (C_KW_SET.has(tok)) {
           out += `<span class="tok-keyword">${escaped}</span>`;
         } else if (C_STD_SET.has(tok)) {
