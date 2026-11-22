@@ -89,6 +89,7 @@
       border: none;
       outline: none;
       resize: none;
+      overflow: auto;
     }
 
     /* Distinct syntax token colours */
@@ -171,6 +172,40 @@
     body.light .tok-number {
       color: #be123c;
     }
+
+    /* Inline input directly inside the output box (no separate input bar) */
+    #inlineInputBar {
+      display: none !important;
+    }
+    .output-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .out-typed-input {
+      color: #4ade80;
+      font-weight: 600;
+    }
+    .inline-box-input {
+      display: inline-block;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(74, 222, 128, 0.55);
+      outline: none;
+      color: #4ade80;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: inherit;
+      font-weight: 600;
+      caret-color: #4ade80;
+      min-width: 110px;
+      width: 55%;
+      padding: 0 2px;
+    }
+    body.light .out-typed-input,
+    body.light .inline-box-input {
+      color: #15803d;
+      border-bottom-color: rgba(21, 128, 61, 0.55);
+      caret-color: #15803d;
+    }
   </style>
 </head>
 <body>
@@ -189,7 +224,7 @@
         <!-- Quick Notes / Scratchpad (Browser mein auto-save hota hai) -->
         <section id="notesSection" class="drawer-card">
           <h2>Quick Notes (Auto-Saved)</h2>
-          <p class="hint">Yahan jo bhi likhoge, wo tumhare is browser mein apne aap save ho jayega.</p>
+          <p class="hint">Yahan jo bhi likhoge, wo tumhare browser mein apne aap save ho jayega.</p>
           <textarea id="quickNotes" placeholder="Aaj ke tasks, yaad rakhne wali baatein, ya notes likho..."></textarea>
           <button id="clearNotes" class="btn secondary">Clear Notes</button>
         </section>
@@ -211,7 +246,7 @@
       <header class="header">
         <div>
           <h1>This Is Akshay Official Compiler</h1>
-          <p class="subtitle">Offline C IDE • Error Line Mark • Open/Save .c • Bracket Match • Snippets • Find/Replace</p>
+          <p class="subtitle">Offline C IDE &#8226; Error Line Mark &#8226; Open/Save .c &#8226; Bracket Match &#8226; Snippets &#8226; Find/Replace</p>
         </div>
 
         <div class="header-actions">
@@ -313,17 +348,17 @@
 
               <div id="outputSurface" class="output-box">
                 <pre id="cOutputText" class="output-text">Neeche "Run" (ya F9) dabao aur output dekho...</pre>
+              </div>
 
-                <div id="inlineInputBar" class="inline-input-bar hidden-bar">
-                  <span class="inline-prompt-label">Input &gt;</span>
-                  <input
-                    id="inlineStdinInput"
-                    type="text"
-                    class="inline-stdin-input"
-                    placeholder="scanf input likho (jaise 6 3) aur Enter dabao..."
-                    autocomplete="off"
-                  />
-                </div>
+              <div id="inlineInputBar" class="inline-input-bar hidden-bar">
+                <span class="inline-prompt-label">Input &gt;</span>
+                <input
+                  id="inlineStdinInput"
+                  type="text"
+                  class="inline-stdin-input"
+                  placeholder="scanf input likho (jaise 6 3) aur Enter dabao..."
+                  autocomplete="off"
+                />
               </div>
             </div>
           </div>
@@ -336,7 +371,7 @@
             <span><b>Ctrl+/</b> Comment</span>
             <span><b>Ctrl+D</b> Duplicate</span>
             <span><b>Ctrl+Shift+K</b> Delete Line</span>
-            <span><b>Alt+↑/↓</b> Move Line</span>
+            <span><b>Alt+ &#8593; / &#8595;</b> Move Line</span>
             <span><b>Ctrl+F</b> Find/Replace</span>
           </div>
         </section>
@@ -388,9 +423,11 @@
 
     const runCBtn = document.getElementById("runCBtn");
     const clearRunnerBtn = document.getElementById("clearRunnerBtn");
+    const outputSurface = document.getElementById("outputSurface");
     const cOutputText = document.getElementById("cOutputText");
     const inlineInputBar = document.getElementById("inlineInputBar");
     const inlineStdinInput = document.getElementById("inlineStdinInput");
+
     const autocompletePopup = document.getElementById("autocompletePopup");
 
     const flagWall = document.getElementById("flagWall");
@@ -416,12 +453,13 @@
 
 int main() {
     int a, b;
-    printf("Enter two numbers: ");
-    if (scanf("%d %d", &a, &b) == 2) {
-        printf("Sum = %d\\n", a + b);
-    } else {
-        printf("Hello from real gcc!\\n");
-    }
+    printf("Enter first number: ");
+    scanf("%d", &a);
+
+    printf("Enter second number: ");
+    scanf("%d", &b);
+
+    printf("Sum = %d\\n", a + b);
     return 0;
 }`;
 
@@ -603,6 +641,7 @@ int main() {
       "switch","typedef","union","unsigned","void","volatile","while","_Bool",
       "_Complex","_Imaginary"
     ]);
+
     const C_STD_SET = new Set([
       "printf","scanf","fgets","puts","getchar","putchar","malloc",
       "calloc","realloc","free","strlen","strcpy","strncpy","strcat","strcmp",
@@ -618,7 +657,8 @@ int main() {
 
     function highlightStringLiteral(strToken) {
       const innerRegex =
-        /(%[+\-#0 ]*\d*(?:\.\d+)?(?:hh|h|ll|l|j|z|t|L)?[diuoxXfFeEgGaAcsSpn%]|\\(?:[abefnrtv\\'"?]|x[0-9a-fA-F]+|[0-7]{1,3}))/g;
+        /(%[\+\-#0 ]*\d*(?:\.\d+)?(?:hh|h|ll|l|j|z|t|L)?[diuoxXfFeEgGaAcsSpn%])|\\(?:[abefnrtv\\'"?]|x[0-9a-fA-F]+|[0-7]{1,3})/g;
+
       let result = "";
       let last = 0;
       let m;
@@ -675,8 +715,9 @@ int main() {
 
     function highlightCCode(code, bracketPair) {
       const matchedSet = new Set(bracketPair || []);
+
       const tokenRegex =
-        /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(?:<[^>]*>|"[^"]*")?|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?[fFlLuU]*)\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b|&(?!&)|[\{\}\(\)\[\]])/g;
+        /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|^\s*#\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(?:<[^>]*>|"(?:[^"\\]|\\.)*")?|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?)(?:[fFlLuU]*)\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b|&(?!&)|[\{\}\(\)\[\]])/gm;
 
       let out = "";
       let lastIndex = 0;
@@ -774,7 +815,7 @@ int main() {
         clearErrorMarker();
         return;
       }
-      const errMatch = outputText.match(/\.(?:c|h):(\d+):\d+:\s*(fatal error|error):/i);
+      const errMatch = outputText.match(/^(?:.*?:)?program\.c:(\d+):\d+:\s*(?:fatal error|error):/im);
       if (errMatch) {
         errorLineNumber = parseInt(errMatch[1], 10);
         errorLineKind = "error";
@@ -783,7 +824,7 @@ int main() {
         return;
       }
 
-      const warnMatch = outputText.match(/\.(?:c|h):(\d+):\d+:\s*warning:/i);
+      const warnMatch = outputText.match(/^(?:.*?:)?program\.c:(\d+):\d+:\s*warning:/im);
       if (warnMatch) {
         errorLineNumber = parseInt(warnMatch[1], 10);
         errorLineKind = "warning";
@@ -915,6 +956,7 @@ int main() {
       if (findReplaceBar.classList.contains("hidden-bar")) openFindBar(false);
       else closeFindBar();
     });
+
     closeFindBtn.addEventListener("click", closeFindBar);
     findInput.addEventListener("input", updateFindMatchCount);
     findInput.addEventListener("keydown", (e) => {
@@ -973,7 +1015,7 @@ int main() {
       { label: "else if", insertText: "else if ()", kind: "keyword", cursorOffset: -1 },
       { label: "for", insertText: "for ()", kind: "keyword", cursorOffset: -1 },
       { label: "while", insertText: "while ()", kind: "keyword", cursorOffset: -1 },
-      { label: "do", insertText: "do {\n    \n} while ();", kind: "keyword" },
+      { label: "do", insertText: "do {\n    \n} while ();", kind: "keyword", cursorOffset: -1 },
       { label: "switch", insertText: "switch ()", kind: "keyword", cursorOffset: -1 },
       { label: "case", insertText: "case :", kind: "keyword", cursorOffset: -1 },
       { label: "default", insertText: "default:", kind: "keyword" },
@@ -986,6 +1028,8 @@ int main() {
       { label: "fgets", insertText: "fgets(, , stdin);", kind: "func" },
       { label: "strlen", insertText: "strlen()", kind: "func", cursorOffset: -1 },
       { label: "strcpy", insertText: "strcpy(, );", kind: "func" },
+      { label: "strncpy", insertText: "strncpy(, , );", kind: "func" },
+      { label: "strcat", insertText: "strcat(, );", kind: "func" },
       { label: "strcmp", insertText: "strcmp(, );", kind: "func" },
       { label: "malloc", insertText: "malloc(sizeof())", kind: "func", cursorOffset: -2 },
       { label: "free", insertText: "free();", kind: "func", cursorOffset: -2 },
@@ -1151,7 +1195,7 @@ int main() {
     }
 
     // Editor Shortcuts
-    const PAIRS = { "{": "}", "(": ")", "[": "]", '"': '"', "'": "'" };
+    const PAIRS = { "{": "}", "(": ")", "[": "]", "'": "'", '"': '"' };
 
     cCodeInput.addEventListener("input", () => {
       syncEditorVisuals();
@@ -1302,7 +1346,7 @@ int main() {
       if (PAIRS[e.key] && start === end) {
         const closeChar = PAIRS[e.key];
         const nextChar = val[start];
-        if ((e.key === '"' || e.key === "'") && nextChar === e.key) {
+        if ((e.key === "'" || e.key === '"') && nextChar === e.key) {
           e.preventDefault();
           cCodeInput.setSelectionRange(start + 1, start + 1);
           updateLineNumbersAndCursor();
@@ -1333,7 +1377,20 @@ int main() {
       }
     });
 
-    // Runner & Inline scanf Flow
+    // Runner & Inline scanf Flow (inside output box, one scanf -> Enter -> next printf/scanf)
+    let activeSessionId = null;
+    let pollTimer = null;
+    let activeInlineInput = null;
+    let runStartTime = 0;
+
+    async function parseJsonSafe(res) {
+      const txt = await res.text();
+      if (!txt || !txt.trim()) {
+        throw new Error("Server returned empty response (restart start.bat)");
+      }
+      return JSON.parse(txt);
+    }
+
     function focusCodeEditor() {
       requestAnimationFrame(() => {
         cCodeInput.focus();
@@ -1343,26 +1400,70 @@ int main() {
 
     function focusStdinInput() {
       requestAnimationFrame(() => {
-        inlineStdinInput.focus();
+        if (activeInlineInput) {
+          activeInlineInput.focus();
+        }
       });
     }
 
-    function needsScanf(code) {
-      const withoutLineComments = code.replace(/\/\/.*$/gm, "");
-      const withoutBlockComments = withoutLineComments.replace(/\/\*[\s\S]*?\*\//g, "");
-      return /\b(scanf|fscanf|scanf_s)\s*\(/.test(withoutBlockComments);
-    }
-
     function hideInputBar() {
+      if (activeInlineInput) {
+        activeInlineInput.remove();
+        activeInlineInput = null;
+      }
       inlineInputBar.classList.add("hidden-bar");
       inlineStdinInput.value = "";
     }
 
-    function showInputBar() {
-      inlineInputBar.classList.remove("hidden-bar");
-      inlineStdinInput.value = "";
-      focusStdinInput();
+    function appendToOutputBox(text, cls = "") {
+      if (!text) return;
+      const span = document.createElement("span");
+      if (cls) span.className = cls;
+      span.textContent = text;
+      cOutputText.appendChild(span);
+      outputSurface.scrollTop = outputSurface.scrollHeight;
     }
+
+    function ensureInlineInputInOutputBox() {
+      if (!activeSessionId) return;
+      if (activeInlineInput && cOutputText.contains(activeInlineInput)) {
+        focusStdinInput();
+        return;
+      }
+
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.className = "inline-box-input";
+      inp.autocomplete = "off";
+      inp.spellcheck = false;
+
+      inp.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const line = inp.value;
+          inp.remove();
+          activeInlineInput = null;
+          appendToOutputBox(line + "\n", "out-typed-input");
+          await sendInlineInputLine(line);
+        }
+      });
+
+      cOutputText.appendChild(inp);
+      activeInlineInput = inp;
+      focusStdinInput();
+      outputSurface.scrollTop = outputSurface.scrollHeight;
+    }
+
+    function showInputBar() {
+      if (!activeSessionId) return;
+      ensureInlineInputInOutputBox();
+    }
+
+    outputSurface.addEventListener("click", () => {
+      if (activeInlineInput) {
+        focusStdinInput();
+      }
+    });
 
     function getSelectedFlags() {
       const flags = [stdSelect.value];
@@ -1371,96 +1472,170 @@ int main() {
       return flags;
     }
 
-    async function executeCCode(stdinValue) {
-      if (runCBtn.disabled) return;
-      saveTabs();
-      clearErrorMarker();
-      hideAutocomplete();
-      hideInputBar();
-      runCBtn.disabled = true;
-      runCBtn.textContent = "Compiling...";
-      execMetaLabel.textContent = "Running...";
-      cOutputText.textContent = "gcc se compile aur run ho raha hai...";
+    function stopSessionPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
 
-      const t0 = performance.now();
+    async function closeActiveSessionOnServer(silent = true) {
+      stopSessionPolling();
+      hideInputBar();
+      if (activeSessionId) {
+        const sid = activeSessionId;
+        activeSessionId = null;
+        try {
+          await fetch("/stop", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sid })
+          });
+        } catch (_) {}
+        if (!silent) {
+          appendToOutputBox("\n[Stopped]\n");
+        }
+      }
+    }
+
+    function completeSession(exitCode) {
+      stopSessionPolling();
+      hideInputBar();
+      activeSessionId = null;
+      runCBtn.disabled = false;
+      runCBtn.textContent = "\u25B6 Run (F9)";
+      const elapsed = Math.round(performance.now() - runStartTime);
+      execMetaLabel.textContent = `Done \u2022 ${elapsed} ms`;
+      if (exitCode !== null && exitCode !== undefined && exitCode !== 0) {
+        appendToOutputBox(`\n[Process exited with code ${exitCode}]`);
+      }
+      outputSurface.scrollTop = outputSurface.scrollHeight;
+      focusCodeEditor();
+    }
+
+    async function sendInlineInputLine(line) {
+      if (!activeSessionId) return;
+      execMetaLabel.textContent = "Running...";
       try {
-        const res = await fetch("/run", {
+        const res = await fetch("/input", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            code: cCodeInput.value,
-            input: stdinValue,
-            flags: getSelectedFlags(),
-            check_only: false
+            session_id: activeSessionId,
+            input: line
           })
         });
-
-        const data = await res.json();
-        const elapsed = Math.round(performance.now() - t0);
-        cOutputText.textContent = data.output;
-        detectCompilerLineFromOutput(data.output);
-        execMetaLabel.textContent = `Done • ${elapsed} ms`;
+        const data = await parseJsonSafe(res);
+        if (data.output) {
+          if (activeInlineInput) {
+            const draft = activeInlineInput.value;
+            activeInlineInput.remove();
+            activeInlineInput = null;
+            appendToOutputBox(data.output);
+            if (!data.done) {
+              ensureInlineInputInOutputBox();
+              if (activeInlineInput) activeInlineInput.value = draft;
+            }
+          } else {
+            appendToOutputBox(data.output);
+          }
+        }
+        if (data.done) {
+          completeSession(data.exit_code);
+        } else {
+          execMetaLabel.textContent = "Waiting for input";
+          showInputBar();
+        }
       } catch (err) {
-        cOutputText.textContent =
-          "Connection Error: Kya server chal raha hai? (" + err.message + ")";
-        execMetaLabel.textContent = "Error";
-      } finally {
-        runCBtn.disabled = false;
-        runCBtn.textContent = "\u25B6 Run (F9)";
-        focusCodeEditor();
+        appendToOutputBox("\nConnection Error: Kya server chal raha hai? (" + err.message + ")");
+        completeSession(-1);
       }
+    }
+
+    function startSessionPolling() {
+      stopSessionPolling();
+      pollTimer = setInterval(async () => {
+        if (!activeSessionId) {
+          stopSessionPolling();
+          return;
+        }
+        try {
+          const res = await fetch("/poll", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: activeSessionId })
+          });
+          const data = await parseJsonSafe(res);
+          if (data.output) {
+            const draft = activeInlineInput ? activeInlineInput.value : "";
+            if (activeInlineInput) {
+              activeInlineInput.remove();
+              activeInlineInput = null;
+            }
+            appendToOutputBox(data.output);
+            if (!data.done) {
+              ensureInlineInputInOutputBox();
+              if (activeInlineInput && draft) activeInlineInput.value = draft;
+            }
+          }
+          if (data.done) {
+            completeSession(data.exit_code);
+          }
+        } catch (_) {
+          stopSessionPolling();
+        }
+      }, 150);
     }
 
     async function triggerRunFlow() {
       if (runCBtn.disabled) return;
+      await closeActiveSessionOnServer(true);
       saveTabs();
       clearErrorMarker();
       hideAutocomplete();
-      hideInputBar();
-
-      const code = cCodeInput.value;
-      if (!needsScanf(code)) {
-        executeCCode("");
-        return;
-      }
-
+      cOutputText.innerHTML = "";
       runCBtn.disabled = true;
-      runCBtn.textContent = "Checking...";
-      execMetaLabel.textContent = "Checking syntax...";
-      cOutputText.textContent = "Compile check ho raha hai...";
+      runCBtn.textContent = "Compiling...";
+      execMetaLabel.textContent = "Compiling...";
+      runStartTime = performance.now();
 
-      const t0 = performance.now();
       try {
-        const res = await fetch("/run", {
+        const res = await fetch("/start", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            code,
-            input: "",
-            flags: getSelectedFlags(),
-            check_only: true
+            code: cCodeInput.value,
+            flags: getSelectedFlags()
           })
         });
+        const data = await parseJsonSafe(res);
 
-        const data = await res.json();
-        const elapsed = Math.round(performance.now() - t0);
-
-        if (data.compile_ok === false) {
-          cOutputText.textContent = data.output;
-          detectCompilerLineFromOutput(data.output);
-          execMetaLabel.textContent = `Compile Error • ${elapsed} ms`;
+        if (!data.compile_ok) {
+          const elapsed = Math.round(performance.now() - runStartTime);
+          cOutputText.textContent = data.output || "Compilation failed.";
+          detectCompilerLineFromOutput(data.output || "");
+          execMetaLabel.textContent = `Compile Error \u2022 ${elapsed} ms`;
           runCBtn.disabled = false;
           runCBtn.textContent = "\u25B6 Run (F9)";
           focusCodeEditor();
           return;
         }
 
+        activeSessionId = data.session_id;
         runCBtn.disabled = false;
         runCBtn.textContent = "\u25B6 Run (F9)";
-        execMetaLabel.textContent = "Waiting for input";
-        cOutputText.textContent =
-          "Compile OK — scanf input likho aur Enter dabao:";
-        showInputBar();
+
+        if (data.output) {
+          appendToOutputBox(data.output);
+        }
+
+        if (data.done) {
+          completeSession(data.exit_code);
+        } else {
+          execMetaLabel.textContent = "Waiting for input";
+          showInputBar();
+          startSessionPolling();
+        }
       } catch (err) {
         cOutputText.textContent =
           "Connection Error: Kya server chal raha hai? (" + err.message + ")";
@@ -1473,26 +1648,21 @@ int main() {
 
     runCBtn.addEventListener("click", triggerRunFlow);
 
-    inlineStdinInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        executeCCode(inlineStdinInput.value);
-      }
-    });
-
-    clearRunnerBtn.addEventListener("click", () => {
+    clearRunnerBtn.addEventListener("click", async () => {
+      await closeActiveSessionOnServer(true);
       cCodeInput.value = "";
-      cOutputText.textContent = "";
+      cOutputText.innerHTML = "";
       clearErrorMarker();
       execMetaLabel.textContent = "Cleared";
+      runCBtn.disabled = false;
+      runCBtn.textContent = "\u25B6 Run (F9)";
       hideAutocomplete();
-      hideInputBar();
       syncEditorVisuals();
       focusCodeEditor();
     });
 
     copyOutputBtn.addEventListener("click", () => {
-      const txt = cOutputText.textContent || "";
+      const txt = cOutputText.innerText || cOutputText.textContent || "";
       if (!txt) return;
       navigator.clipboard?.writeText(txt).catch(() => {});
       const prev = copyOutputBtn.textContent;
