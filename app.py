@@ -1,17 +1,43 @@
 import json
 import os
+import shutil
 import subprocess
-import tempfile
 import threading
 import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ALLOWED_FLAGS = {"-std=c17", "-std=c11", "-std=c99", "-Wall", "-Wextra", "-lm"}
+RUNS_ROOT = os.path.join(BASE_DIR, "_runs")
+os.makedirs(RUNS_ROOT, exist_ok=True)
+
+ALLOWED_FLAGS = {
+    "-std=c17",
+    "-std=c11",
+    "-std=c99",
+    "-std=c++20",
+    "-std=c++17",
+    "-std=c++14",
+    "-std=c++11",
+    "-Wall",
+    "-Wextra",
+    "-lm",
+}
 
 SESSIONS = {}
 SESSIONS_LOCK = threading.Lock()
+
+
+def remove_path_safe(path):
+    if not path or not os.path.exists(path):
+        return
+    try:
+        if os.path.isfile(path) or os.path.islink(path):
+            os.remove(path)
+        elif os.path.isdir(path):
+            shutil.rmtree(path, ignore_errors=True)
+    except Exception:
+        pass
 
 
 class LiveProgramSession:
@@ -25,6 +51,7 @@ class LiveProgramSession:
 
         self.proc = subprocess.Popen(
             [exe_path],
+            cwd=tmp_dir,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -48,7 +75,8 @@ class LiveProgramSession:
             with self.lock:
                 self.exit_code = self.proc.returncode
                 self.done = True
-            self._cleanup()
+            time.sleep(0.05)
+            remove_path_safe(self.tmp_dir)
 
     def write_line(self, line):
         if self.done:
@@ -70,37 +98,37 @@ class LiveProgramSession:
         try:
             if self.proc.poll() is None:
                 self.proc.kill()
+                self.proc.wait(timeout=2)
         except Exception:
             pass
-        self._cleanup()
-
-    def _cleanup(self):
-        for p in (self.exe_path, self.tmp_dir):
-            try:
-                if os.path.isfile(p):
-                    os.remove(p)
-                elif os.path.isdir(p):
-                    os.rmdir(p)
-            except Exception:
-                pass
+        remove_path_safe(self.tmp_dir)
 
 
-def inject_unbuffered_c(code):
-    header = (
-        "#include <stdio.h>\n"
-        "__attribute__((constructor)) static void _ak_live_stdio(void) {\n"
-        "    setvbuf(stdout, NULL, _IONBF, 0);\n"
-        "    setvbuf(stderr, NULL, _IONBF, 0);\n"
-        "}\n"
-    )
+def inject_unbuffered_io(code, is_cpp=False):
+    if is_cpp:
+        header = (
+            "#include <cstdio>\n"
+            "__attribute__((constructor)) static void _ak_live_stdio(void) {\n"
+            "    std::setvbuf(stdout, nullptr, _IONBF, 0);\n"
+            "    std::setvbuf(stderr, nullptr, _IONBF, 0);\n"
+            "}\n"
+        )
+    else:
+        header = (
+            "#include <stdio.h>\n"
+            "__attribute__((constructor)) static void _ak_live_stdio(void) {\n"
+            "    setvbuf(stdout, NULL, _IONBF, 0);\n"
+            "    setvbuf(stderr, NULL, _IONBF, 0);\n"
+            "}\n"
+        )
     return header + code
 
 
-def adjust_gcc_line_numbers(msg, c_file_path, offset=5):
+def adjust_compiler_line_numbers(msg, src_file_path, display_name, offset=5):
     adjusted = []
     for line in msg.splitlines():
-        if c_file_path in line:
-            parts = line.split(c_file_path + ":", 1)
+        if src_file_path in line:
+            parts = line.split(src_file_path + ":", 1)
             if len(parts) == 2:
                 rest = parts[1]
                 digits = ""
@@ -112,8 +140,8 @@ def adjust_gcc_line_numbers(msg, c_file_path, offset=5):
                 if digits:
                     new_ln = max(1, int(digits) - offset)
                     rest = str(new_ln) + rest[len(digits) :]
-                line = "program.c:" + rest
-        adjusted.append(line.replace(c_file_path, "program.c"))
+                line = f"{display_name}:" + rest
+        adjusted.append(line.replace(src_file_path, display_name))
     return "\n".join(adjusted)
 
 
@@ -197,65 +225,61 @@ class CompilerHandler(BaseHTTPRequestHandler):
         try:
             if self.path == "/start":
                 code = payload.get("code", "")
+                lang = str(payload.get("lang", "c")).lower()
+                is_cpp = lang in ("cpp", "c++")
+                compiler_bin = "g++" if is_cpp else "gcc"
+                display_name = "program.cpp" if is_cpp else "program.c"
+
                 raw_flags = payload.get("flags", [])
                 safe_flags = [fl for fl in raw_flags if isinstance(fl, str) and fl in ALLOWED_FLAGS]
                 has_lm = "-lm" in safe_flags
                 compile_flags = [fl for fl in safe_flags if fl != "-lm"]
 
-                tmpdir = tempfile.mkdtemp(prefix="akc_live_")
-                c_file = os.path.join(tmpdir, "program.c")
+                sid = str(uuid.uuid4())
+                tmpdir = os.path.join(RUNS_ROOT, sid)
+                os.makedirs(tmpdir, exist_ok=True)
+                src_file = os.path.join(tmpdir, display_name)
                 exe_name = "program.exe" if os.name == "nt" else "program"
                 exe_file = os.path.join(tmpdir, exe_name)
 
-                with open(c_file, "w", encoding="utf-8") as f:
-                    f.write(inject_unbuffered_c(code))
+                with open(src_file, "w", encoding="utf-8") as f:
+                    f.write(inject_unbuffered_io(code, is_cpp=is_cpp))
 
-                compile_cmd = ["gcc", c_file, *compile_flags, "-o", exe_file]
+                compile_cmd = [compiler_bin, src_file, *compile_flags, "-o", exe_file]
                 if has_lm:
                     compile_cmd.append("-lm")
 
                 try:
                     comp = subprocess.run(
                         compile_cmd,
+                        cwd=tmpdir,
                         capture_output=True,
                         text=True,
-                        timeout=10,
+                        timeout=12,
                     )
                 except FileNotFoundError:
-                    for p in (c_file, exe_file, tmpdir):
-                        try:
-                            os.remove(p) if os.path.isfile(p) else os.rmdir(p)
-                        except Exception:
-                            pass
-                    self.send_json({"compile_ok": False, "output": "Error: gcc not found in PATH."})
+                    remove_path_safe(tmpdir)
+                    self.send_json(
+                        {
+                            "compile_ok": False,
+                            "output": f"Error: {compiler_bin} not found in PATH. MinGW/GCC (with g++) install karo.",
+                        }
+                    )
                     return
                 except subprocess.TimeoutExpired:
-                    for p in (c_file, exe_file, tmpdir):
-                        try:
-                            os.remove(p) if os.path.isfile(p) else os.rmdir(p)
-                        except Exception:
-                            pass
+                    remove_path_safe(tmpdir)
                     self.send_json({"compile_ok": False, "output": "Compilation timed out."})
                     return
 
-                try:
-                    if os.path.exists(c_file):
-                        os.remove(c_file)
-                except Exception:
-                    pass
+                remove_path_safe(src_file)
 
                 if comp.returncode != 0:
                     raw_err = comp.stderr or comp.stdout or "Compilation failed."
-                    msg = adjust_gcc_line_numbers(raw_err, c_file, offset=5)
-                    for p in (exe_file, tmpdir):
-                        try:
-                            os.remove(p) if os.path.isfile(p) else os.rmdir(p)
-                        except Exception:
-                            pass
+                    msg = adjust_compiler_line_numbers(raw_err, src_file, display_name, offset=5)
+                    remove_path_safe(tmpdir)
                     self.send_json({"compile_ok": False, "output": msg})
                     return
 
-                sid = str(uuid.uuid4())
                 session = LiveProgramSession(exe_file, tmpdir)
                 with SESSIONS_LOCK:
                     SESSIONS[sid] = session
@@ -320,6 +344,10 @@ class CompilerHandler(BaseHTTPRequestHandler):
             # Legacy /run fallback
             code = payload.get("code", "")
             stdin_data = payload.get("input", "")
+            lang = str(payload.get("lang", "c")).lower()
+            is_cpp = lang in ("cpp", "c++")
+            compiler_bin = "g++" if is_cpp else "gcc"
+            display_name = "program.cpp" if is_cpp else "program.c"
             check_only = bool(payload.get("check_only", False))
             raw_flags = payload.get("flags", [])
 
@@ -327,34 +355,37 @@ class CompilerHandler(BaseHTTPRequestHandler):
             has_lm = "-lm" in safe_flags
             compile_flags = [fl for fl in safe_flags if fl != "-lm"]
 
-            with tempfile.TemporaryDirectory() as tmpdir:
-                c_file = os.path.join(tmpdir, "program.c")
+            tmpdir = os.path.join(RUNS_ROOT, str(uuid.uuid4()))
+            os.makedirs(tmpdir, exist_ok=True)
+            try:
+                src_file = os.path.join(tmpdir, display_name)
                 exe_name = "program.exe" if os.name == "nt" else "program"
                 exe_file = os.path.join(tmpdir, exe_name)
 
-                with open(c_file, "w", encoding="utf-8") as f:
+                with open(src_file, "w", encoding="utf-8") as f:
                     f.write(code)
 
-                compile_cmd = ["gcc", c_file, *compile_flags, "-o", exe_file]
+                compile_cmd = [compiler_bin, src_file, *compile_flags, "-o", exe_file]
                 if has_lm:
                     compile_cmd.append("-lm")
 
                 try:
                     comp = subprocess.run(
                         compile_cmd,
+                        cwd=tmpdir,
                         capture_output=True,
                         text=True,
-                        timeout=10,
+                        timeout=12,
                     )
                 except FileNotFoundError:
-                    self.send_json({"compile_ok": False, "output": "Error: gcc not found in PATH."})
+                    self.send_json({"compile_ok": False, "output": f"Error: {compiler_bin} not found in PATH."})
                     return
                 except subprocess.TimeoutExpired:
                     self.send_json({"compile_ok": False, "output": "Compilation timed out."})
                     return
 
                 if comp.returncode != 0:
-                    msg = (comp.stderr or comp.stdout or "Compilation failed.").replace(c_file, "program.c")
+                    msg = (comp.stderr or comp.stdout or "Compilation failed.").replace(src_file, display_name)
                     self.send_json({"compile_ok": False, "output": msg})
                     return
 
@@ -365,6 +396,7 @@ class CompilerHandler(BaseHTTPRequestHandler):
                 try:
                     run_res = subprocess.run(
                         [exe_file],
+                        cwd=tmpdir,
                         input=stdin_data,
                         capture_output=True,
                         text=True,
@@ -372,7 +404,7 @@ class CompilerHandler(BaseHTTPRequestHandler):
                     )
                     combined = ""
                     if comp.stderr and "-Wall" in safe_flags:
-                        combined += comp.stderr.replace(c_file, "program.c") + "\n"
+                        combined += comp.stderr.replace(src_file, display_name) + "\n"
                     combined += run_res.stdout
                     if run_res.stderr:
                         combined += "\n[stderr]\n" + run_res.stderr
@@ -381,6 +413,8 @@ class CompilerHandler(BaseHTTPRequestHandler):
                     self.send_json({"compile_ok": True, "output": combined})
                 except subprocess.TimeoutExpired:
                     self.send_json({"compile_ok": True, "output": "Execution timed out (possible infinite loop)."})
+            finally:
+                remove_path_safe(tmpdir)
 
         except Exception as e:
             self.send_json({"compile_ok": False, "output": f"Server Error: {e}", "done": True})

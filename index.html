@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>This Is Akshay Official Compiler — Online C Code Runner</title>
+  <title>This Is Akshay Official Compiler — Online C &amp; C++ Code Runner</title>
   <meta
     name="description"
-    content="This Is Akshay Official Compiler is a browser-based C code editor and gcc compiler with syntax highlighting, bracket matching, line error markers, scanf input support, and multi-tab editing."
+    content="This Is Akshay Official Compiler is a browser-based C and C++ code editor and gcc/g++ compiler with syntax highlighting, bracket matching, line error markers, interactive input support, and multi-tab editing."
   />
   <meta
     name="keywords"
-    content="This Is Akshay Official Compiler, Akshay Official Compiler, online C compiler, run C code online, gcc online compiler, C IDE"
+    content="This Is Akshay Official Compiler, Akshay Official Compiler, online C compiler, online C++ compiler, run C++ code online, gcc g++ online compiler, C++ IDE"
   />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://akshay-official-compiler.onrender.com/" />
 
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="This Is Akshay Official Compiler — Online C Code Runner" />
+  <meta property="og:title" content="This Is Akshay Official Compiler — Online C &amp; C++ Code Runner" />
   <meta
     property="og:description"
-    content="Compile and run C programs online with real gcc, scanf support, syntax highlighting, and keyboard shortcuts."
+    content="Compile and run C and C++ programs online with real gcc and g++, interactive input, syntax highlighting, and keyboard shortcuts."
   />
   <meta property="og:url" content="https://akshay-official-compiler.onrender.com/" />
 
@@ -31,7 +31,7 @@
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Any (Web Browser)",
     "url": "https://akshay-official-compiler.onrender.com/",
-    "description": "Online C code editor and gcc runner with multi-tab support, scanf input handling, and error line highlighting."
+    "description": "Online C and C++ code editor and gcc/g++ runner with multi-tab support, interactive input handling, and error line highlighting."
   }
   </script>
   <link rel="stylesheet" href="style.css" />
@@ -210,7 +210,7 @@
 </head>
 <body>
   <div class="workspace-shell">
-    <!-- Left Vertical Expandable Strip (Starts collapsed; expands only when arrow is clicked) -->
+    <!-- Left Vertical Expandable Strip -->
     <aside id="leftSidebar" class="left-sidebar" aria-label="Workspace Drawer">
       <div class="sidebar-top">
         <button id="sidebarArrowBtn" class="arrow-toggle-btn" type="button" aria-label="Expand or collapse panel" aria-expanded="false" title="Expand / Collapse">
@@ -221,7 +221,6 @@
       </div>
 
       <div id="sidebarContent" class="sidebar-content">
-        <!-- Quick Notes / Scratchpad (Browser mein auto-save hota hai) -->
         <section id="notesSection" class="drawer-card">
           <h2>Quick Notes (Auto-Saved)</h2>
           <p class="hint">Yahan jo bhi likhoge, wo tumhare browser mein apne aap save ho jayega.</p>
@@ -229,7 +228,6 @@
           <button id="clearNotes" class="btn secondary">Clear Notes</button>
         </section>
 
-        <!-- Quick Links -->
         <section id="linksSection" class="drawer-card">
           <h2>Quick Links</h2>
           <ul class="links">
@@ -246,7 +244,7 @@
       <header class="header">
         <div>
           <h1>This Is Akshay Official Compiler</h1>
-          <p class="subtitle">Offline C IDE &#8226; Error Line Mark &#8226; Open/Save .c &#8226; Bracket Match &#8226; Snippets &#8226; Find/Replace</p>
+          <p class="subtitle">Offline C &amp; C++ IDE &#8226; Error Line Mark &#8226; Open/Save .c/.cpp &#8226; Bracket Match &#8226; Snippets &#8226; Find/Replace</p>
         </div>
 
         <div class="header-actions">
@@ -259,30 +257,37 @@
           <!-- Compact Top Strip -->
           <div class="card-top">
             <div class="title-and-flags">
-              <h2>C Code Runner (gcc)</h2>
+              <h2 id="runnerTitle">C / C++ Code Runner</h2>
               <div class="flags-group">
+                <select id="langSelect" class="mini-select" title="Select Language (C / C++)">
+                  <option value="c" selected>C (gcc)</option>
+                  <option value="cpp">C++ (g++)</option>
+                </select>
                 <label class="flag-check" title="Show compiler warnings (-Wall)">
                   <input type="checkbox" id="flagWall" checked /> -Wall
                 </label>
                 <label class="flag-check" title="Link math library (-lm)">
                   <input type="checkbox" id="flagLm" checked /> -lm
                 </label>
-                <select id="stdSelect" class="mini-select" title="C Standard">
+                <select id="stdSelect" class="mini-select" title="Language Standard">
                   <option value="-std=c17" selected>C17</option>
                   <option value="-std=c11">C11</option>
                   <option value="-std=c99">C99</option>
                 </select>
-                <select id="snippetSelect" class="mini-select" title="Insert C Snippet">
+                <select id="snippetSelect" class="mini-select" title="Insert C / C++ Snippet">
                   <option value="">+ Snippet</option>
                   <option value="forloop">for Loop</option>
                   <option value="whileloop">while Loop</option>
                   <option value="switchcase">switch-case</option>
-                  <option value="arrayinput">Array Input/Print</option>
+                  <option value="arrayinput">C Array Input/Print</option>
                   <option value="structdef">struct Template</option>
+                  <option value="cppmain">C++ Starter (iostream)</option>
+                  <option value="cppvector">C++ Vector Input/Print</option>
+                  <option value="cppclass">C++ Class Template</option>
                 </select>
-                <button id="openFileBtn" class="btn secondary mini-btn" type="button" title="Open .c / .h file">Open .c</button>
-                <button id="saveFileBtn" class="btn secondary mini-btn" type="button" title="Save current tab as .c file">Save .c</button>
-                <input id="filePickerInput" type="file" accept=".c,.h,.txt" style="display:none" />
+                <button id="openFileBtn" class="btn secondary mini-btn" type="button" title="Open .c / .cpp / .h file">Open File</button>
+                <button id="saveFileBtn" class="btn secondary mini-btn" type="button" title="Save current tab">Save File</button>
+                <input id="filePickerInput" type="file" accept=".c,.cpp,.cc,.cxx,.h,.hpp,.txt" style="display:none" />
                 <button id="formatCodeBtn" class="btn secondary mini-btn" type="button" title="Auto Format / Indent">Format</button>
                 <button id="findToggleBtn" class="btn secondary mini-btn" type="button" title="Find & Replace (Ctrl+F)">Find</button>
               </div>
@@ -300,7 +305,7 @@
             <button id="addTabBtn" class="tab-add-btn" type="button" title="New Tab">+ Tab</button>
           </div>
 
-          <!-- Find & Replace Bar (Hidden by default; Ctrl+F / Ctrl+H) -->
+          <!-- Find & Replace Bar -->
           <div id="findReplaceBar" class="find-replace-bar hidden-bar">
             <input id="findInput" type="text" class="find-input" placeholder="Find..." />
             <input id="replaceInput" type="text" class="find-input" placeholder="Replace with..." />
@@ -313,10 +318,10 @@
 
           <!-- Half-Half Split Workspace -->
           <div class="split-grid">
-            <!-- Left Half: Line Numbers + Syntax Highlight + Error/Bracket Marks + Editor + Autocomplete -->
+            <!-- Left Half: Editor -->
             <div class="pane-left">
               <div class="pane-header-row">
-                <span class="output-label">C Code:</span>
+                <span id="editorLangLabel" class="output-label">C / C++ Code:</span>
                 <div class="output-meta-group">
                   <span id="errorLineBadge" class="error-badge hidden-badge"></span>
                   <span id="cursorPosLabel" class="meta-pill">Ln 1, Col 1</span>
@@ -336,7 +341,7 @@
               </div>
             </div>
 
-            <!-- Right Half: Output + Status/Time + Inline scanf Input -->
+            <!-- Right Half: Interactive Output Box -->
             <div class="pane-right">
               <div class="pane-header-row">
                 <span class="output-label">Output:</span>
@@ -356,7 +361,7 @@
                   id="inlineStdinInput"
                   type="text"
                   class="inline-stdin-input"
-                  placeholder="scanf input likho (jaise 6 3) aur Enter dabao..."
+                  placeholder="input likho aur Enter dabao..."
                   autocomplete="off"
                 />
               </div>
@@ -416,6 +421,7 @@
     const errorLineBadge = document.getElementById("errorLineBadge");
     const execMetaLabel = document.getElementById("execMetaLabel");
     const copyOutputBtn = document.getElementById("copyOutputBtn");
+    const editorLangLabel = document.getElementById("editorLangLabel");
 
     const openFileBtn = document.getElementById("openFileBtn");
     const saveFileBtn = document.getElementById("saveFileBtn");
@@ -430,6 +436,7 @@
 
     const autocompletePopup = document.getElementById("autocompletePopup");
 
+    const langSelect = document.getElementById("langSelect");
     const flagWall = document.getElementById("flagWall");
     const flagLm = document.getElementById("flagLm");
     const stdSelect = document.getElementById("stdSelect");
@@ -463,13 +470,87 @@ int main() {
     return 0;
 }`;
 
+    const DEFAULT_CPP_CODE = `#include <iostream>
+using namespace std;
+
+int main() {
+    int a, b;
+    cout << "Enter first number: ";
+    cin >> a;
+
+    cout << "Enter second number: ";
+    cin >> b;
+
+    cout << "Sum = " << (a + b) << endl;
+    return 0;
+}`;
+
     const SNIPPETS = {
       forloop: `for (int i = 0; i < n; i++) {\n    \n}`,
       whileloop: `while (cond) {\n    \n}`,
       switchcase: `switch (choice) {\n    case 1:\n        break;\n    default:\n        break;\n}`,
       arrayinput: `int n;\nscanf("%d", &n);\nint arr[100];\nfor (int i = 0; i < n; i++) {\n    scanf("%d", &arr[i]);\n}`,
-      structdef: `struct Student {\n    int roll;\n    char name[50];\n};`
+      structdef: `struct Student {\n    int roll;\n    char name[50];\n};`,
+      cppmain: `#include <iostream>\nusing namespace std;\n\nint main() {\n    \n    return 0;\n}`,
+      cppvector: `int n;\ncin >> n;\nvector<int> arr(n);\nfor (int i = 0; i < n; i++) {\n    cin >> arr[i];\n}`,
+      cppclass: `class Solution {\npublic:\n    void solve() {\n        \n    }\n};`
     };
+
+    const C_STANDARDS = [
+      { value: "-std=c17", label: "C17" },
+      { value: "-std=c11", label: "C11" },
+      { value: "-std=c99", label: "C99" }
+    ];
+
+    const CPP_STANDARDS = [
+      { value: "-std=c++17", label: "C++17" },
+      { value: "-std=c++20", label: "C++20" },
+      { value: "-std=c++14", label: "C++14" },
+      { value: "-std=c++11", label: "C++11" }
+    ];
+
+    function detectLangFromFilename(name) {
+      const lower = (name || "").toLowerCase();
+      if (lower.endsWith(".cpp") || lower.endsWith(".cc") || lower.endsWith(".cxx") || lower.endsWith(".hpp")) {
+        return "cpp";
+      }
+      return "c";
+    }
+
+    function applyLanguageUI(lang, preferredStd = null) {
+      const isCpp = lang === "cpp";
+      langSelect.value = isCpp ? "cpp" : "c";
+      editorLangLabel.textContent = isCpp ? "C++ Code (g++):" : "C Code (gcc):";
+
+      const list = isCpp ? CPP_STANDARDS : C_STANDARDS;
+      stdSelect.innerHTML = "";
+      list.forEach((item, idx) => {
+        const opt = document.createElement("option");
+        opt.value = item.value;
+        opt.textContent = item.label;
+        if (preferredStd ? item.value === preferredStd : idx === 0) {
+          opt.selected = true;
+        }
+        stdSelect.appendChild(opt);
+      });
+    }
+
+    langSelect.addEventListener("change", () => {
+      const lang = langSelect.value;
+      applyLanguageUI(lang);
+      const current = tabs.find((t) => t.id === activeTabId);
+      if (current) {
+        current.lang = lang;
+        if (lang === "cpp" && current.name.endsWith(".c")) {
+          current.name = current.name.slice(0, -2) + ".cpp";
+        } else if (lang === "c" && current.name.endsWith(".cpp")) {
+          current.name = current.name.slice(0, -4) + ".c";
+        }
+        renderTabs();
+        saveTabs();
+      }
+      focusCodeEditor();
+    });
 
     let tabs = [];
     let activeTabId = null;
@@ -480,7 +561,10 @@ int main() {
       try {
         const saved = JSON.parse(localStorage.getItem("akshay_c_tabs_v1") || "null");
         if (Array.isArray(saved) && saved.length > 0) {
-          tabs = saved;
+          tabs = saved.map((t) => ({
+            ...t,
+            lang: t.lang || detectLangFromFilename(t.name)
+          }));
           activeTabId = localStorage.getItem("akshay_c_active_tab_v1") || tabs[0].id;
           if (!tabs.some((t) => t.id === activeTabId)) activeTabId = tabs[0].id;
           return;
@@ -488,15 +572,18 @@ int main() {
       } catch (_) {}
 
       tabs = [
-        { id: "tab_1", name: "main.c", code: DEFAULT_CODE },
-        { id: "tab_2", name: "practice.c", code: `#include <stdio.h>\n\nint main() {\n    printf("Practice file\\n");\n    return 0;\n}` }
+        { id: "tab_1", name: "main.c", lang: "c", code: DEFAULT_CODE },
+        { id: "tab_2", name: "main.cpp", lang: "cpp", code: DEFAULT_CPP_CODE }
       ];
       activeTabId = "tab_1";
     }
 
     function saveTabs(showFeedback = false) {
       const current = tabs.find((t) => t.id === activeTabId);
-      if (current) current.code = cCodeInput.value;
+      if (current) {
+        current.code = cCodeInput.value;
+        current.lang = langSelect.value;
+      }
       localStorage.setItem("akshay_c_tabs_v1", JSON.stringify(tabs));
       localStorage.setItem("akshay_c_active_tab_v1", activeTabId);
       if (showFeedback) {
@@ -517,12 +604,14 @@ int main() {
         btn.type = "button";
         btn.className = "tab-btn";
         btn.textContent = tab.name;
-        btn.title = "Switch tab (Double-click to rename)";
+        btn.title = "Switch tab (Double-click to rename; .cpp uses C++)";
 
         btn.addEventListener("click", () => {
           saveTabs();
           activeTabId = tab.id;
           cCodeInput.value = tab.code;
+          const tabLang = tab.lang || detectLangFromFilename(tab.name);
+          applyLanguageUI(tabLang);
           clearErrorMarker();
           localStorage.setItem("akshay_c_active_tab_v1", activeTabId);
           renderTabs();
@@ -533,11 +622,17 @@ int main() {
 
         btn.addEventListener("dblclick", (e) => {
           e.stopPropagation();
-          const nextName = prompt("Rename file tab:", tab.name);
+          const nextName = prompt("Rename file tab (.c ya .cpp):", tab.name);
           if (nextName && nextName.trim()) {
             let clean = nextName.trim();
-            if (!clean.endsWith(".c") && !clean.endsWith(".h")) clean += ".c";
+            if (!/\.(c|cpp|cc|cxx|h|hpp)$/i.test(clean)) {
+              clean += langSelect.value === "cpp" ? ".cpp" : ".c";
+            }
             tab.name = clean;
+            tab.lang = detectLangFromFilename(clean);
+            if (tab.id === activeTabId) {
+              applyLanguageUI(tab.lang);
+            }
             saveTabs();
             renderTabs();
           }
@@ -559,6 +654,7 @@ int main() {
               const next = tabs[Math.max(0, idx - 1)];
               activeTabId = next.id;
               cCodeInput.value = next.code;
+              applyLanguageUI(next.lang || detectLangFromFilename(next.name));
             }
             clearErrorMarker();
             saveTabs();
@@ -576,10 +672,14 @@ int main() {
     addTabBtn.addEventListener("click", () => {
       saveTabs();
       const num = tabs.length + 1;
+      const isCpp = langSelect.value === "cpp";
       const newTab = {
         id: "tab_" + Date.now(),
-        name: `file${num}.c`,
-        code: `#include <stdio.h>\n\nint main() {\n    \n    return 0;\n}`
+        name: isCpp ? `file${num}.cpp` : `file${num}.c`,
+        lang: isCpp ? "cpp" : "c",
+        code: isCpp
+          ? `#include <iostream>\nusing namespace std;\n\nint main() {\n    \n    return 0;\n}`
+          : `#include <stdio.h>\n\nint main() {\n    \n    return 0;\n}`
       };
       tabs.push(newTab);
       activeTabId = newTab.id;
@@ -591,7 +691,7 @@ int main() {
       focusCodeEditor();
     });
 
-    // Open & Save .c File on Disk
+    // Open & Save .c / .cpp File on Disk
     openFileBtn.addEventListener("click", () => {
       filePickerInput.value = "";
       filePickerInput.click();
@@ -602,14 +702,17 @@ int main() {
       if (!file) return;
       const content = await file.text();
       saveTabs();
+      const detectedLang = detectLangFromFilename(file.name);
       const newTab = {
         id: "tab_" + Date.now(),
         name: file.name,
+        lang: detectedLang,
         code: content
       };
       tabs.push(newTab);
       activeTabId = newTab.id;
       cCodeInput.value = content;
+      applyLanguageUI(detectedLang);
       clearErrorMarker();
       saveTabs();
       renderTabs();
@@ -620,7 +723,8 @@ int main() {
     saveFileBtn.addEventListener("click", () => {
       saveTabs();
       const current = tabs.find((t) => t.id === activeTabId);
-      const filename = current ? current.name : "program.c";
+      const defaultExt = langSelect.value === "cpp" ? "program.cpp" : "program.c";
+      const filename = current ? current.name : defaultExt;
       const blob = new Blob([cCodeInput.value], { type: "text/plain;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -633,19 +737,29 @@ int main() {
       execMetaLabel.textContent = `Exported ${filename}`;
     });
 
-    // Syntax Highlighting + Matching Bracket + Error Line Highlighting
-    const C_KW_SET = new Set([
+    // Syntax Highlighting (C + C++) + Matching Bracket + Error Line Highlighting
+    const C_CPP_KW_SET = new Set([
       "auto","break","case","char","const","continue","default","do","double",
       "else","enum","extern","float","for","goto","if","inline","int","long",
       "register","restrict","return","short","signed","sizeof","static","struct",
       "switch","typedef","union","unsigned","void","volatile","while","_Bool",
-      "_Complex","_Imaginary"
+      "_Complex","_Imaginary",
+      // C++ keywords
+      "class","public","private","protected","namespace","using","template","typename",
+      "new","delete","this","virtual","override","final","nullptr","true","false",
+      "bool","try","catch","throw","operator","friend","explicit","constexpr","decltype",
+      "noexcept","static_cast","dynamic_cast","const_cast","reinterpret_cast"
     ]);
 
-    const C_STD_SET = new Set([
+    const C_CPP_STD_SET = new Set([
       "printf","scanf","fgets","puts","getchar","putchar","malloc",
       "calloc","realloc","free","strlen","strcpy","strncpy","strcat","strcmp",
-      "abs","fabs","sqrt","pow","sin","cos","tan","EXIT_SUCCESS","EXIT_FAILURE","NULL"
+      "abs","fabs","sqrt","pow","sin","cos","tan","EXIT_SUCCESS","EXIT_FAILURE","NULL",
+      // C++ STL & I/O
+      "std","cout","cin","cerr","clog","endl","string","vector","pair","map",
+      "unordered_map","set","unordered_set","stack","queue","priority_queue","deque",
+      "list","array","sort","reverse","min","max","swap","push_back","pop_back",
+      "size","empty","begin","end","getline","to_string","stoi","stoll"
     ]);
 
     function escapeHtml(str) {
@@ -743,9 +857,9 @@ int main() {
           out += `<span class="tok-number">${escaped}</span>`;
         } else if (tok === "main") {
           out += `<span class="tok-main">${escaped}</span>`;
-        } else if (C_KW_SET.has(tok)) {
+        } else if (C_CPP_KW_SET.has(tok)) {
           out += `<span class="tok-keyword">${escaped}</span>`;
-        } else if (C_STD_SET.has(tok)) {
+        } else if (C_CPP_STD_SET.has(tok)) {
           out += `<span class="tok-builtin">${escaped}</span>`;
         } else if (/^[\{\}\(\)\[\]]$/.test(tok) && matchedSet.has(match.index)) {
           out += `<span class="tok-bracket-match">${escaped}</span>`;
@@ -815,7 +929,7 @@ int main() {
         clearErrorMarker();
         return;
       }
-      const errMatch = outputText.match(/^(?:.*?:)?program\.c:(\d+):\d+:\s*(?:fatal error|error):/im);
+      const errMatch = outputText.match(/^(?:.*?:)?program\.(?:c|cpp):(\d+):\d+:\s*(?:fatal error|error):/im);
       if (errMatch) {
         errorLineNumber = parseInt(errMatch[1], 10);
         errorLineKind = "error";
@@ -824,7 +938,7 @@ int main() {
         return;
       }
 
-      const warnMatch = outputText.match(/^(?:.*?:)?program\.c:(\d+):\d+:\s*warning:/im);
+      const warnMatch = outputText.match(/^(?:.*?:)?program\.(?:c|cpp):(\d+):\d+:\s*warning:/im);
       if (warnMatch) {
         errorLineNumber = parseInt(warnMatch[1], 10);
         errorLineKind = "warning";
@@ -884,7 +998,9 @@ int main() {
         if (trimmed.startsWith("}")) {
           indent = Math.max(0, indent - 1);
         }
-        formatted.push("    ".repeat(indent) + trimmed);
+        const isAccessSpec = /^(public|private|protected)\s*:/.test(trimmed);
+        const currentIndent = isAccessSpec ? Math.max(0, indent - 1) : indent;
+        formatted.push("    ".repeat(currentIndent) + trimmed);
 
         const openBraces = (trimmed.match(/\{/g) || []).length;
         const closeBraces = (trimmed.match(/\}/g) || []).length;
@@ -902,6 +1018,9 @@ int main() {
     snippetSelect.addEventListener("change", () => {
       const key = snippetSelect.value;
       if (!key || !SNIPPETS[key]) return;
+      if (key.startsWith("cpp") && langSelect.value !== "cpp") {
+        applyLanguageUI("cpp");
+      }
       const start = cCodeInput.selectionStart;
       const end = cCodeInput.selectionEnd;
       const val = cCodeInput.value;
@@ -997,18 +1116,27 @@ int main() {
       focusCodeEditor();
     });
 
-    // Autocomplete Suggestions
-    const C_KEYWORDS = [
+    // Autocomplete Suggestions (C + C++)
+    const C_CPP_KEYWORDS = [
       { label: "int", insertText: "int ", kind: "keyword" },
       { label: "float", insertText: "float ", kind: "keyword" },
       { label: "double", insertText: "double ", kind: "keyword" },
       { label: "char", insertText: "char ", kind: "keyword" },
+      { label: "bool", insertText: "bool ", kind: "keyword" },
       { label: "void", insertText: "void ", kind: "keyword" },
       { label: "long", insertText: "long ", kind: "keyword" },
       { label: "short", insertText: "short ", kind: "keyword" },
       { label: "unsigned", insertText: "unsigned ", kind: "keyword" },
       { label: "const", insertText: "const ", kind: "keyword" },
+      { label: "auto", insertText: "auto ", kind: "keyword" },
       { label: "struct", insertText: "struct ", kind: "keyword" },
+      { label: "class", insertText: "class ", kind: "keyword" },
+      { label: "public", insertText: "public:\n    ", kind: "keyword" },
+      { label: "private", insertText: "private:\n    ", kind: "keyword" },
+      { label: "namespace", insertText: "namespace ", kind: "keyword" },
+      { label: "using namespace std;", insertText: "using namespace std;", kind: "snippet" },
+      { label: "template", insertText: "template <typename T>", kind: "keyword" },
+      { label: "nullptr", insertText: "nullptr", kind: "keyword" },
       { label: "typedef", insertText: "typedef ", kind: "keyword" },
       { label: "if", insertText: "if ()", kind: "keyword", cursorOffset: -1 },
       { label: "else", insertText: "else ", kind: "keyword" },
@@ -1023,6 +1151,17 @@ int main() {
       { label: "continue", insertText: "continue;", kind: "keyword" },
       { label: "return", insertText: "return 0;", kind: "keyword" },
       { label: "sizeof", insertText: "sizeof()", kind: "keyword", cursorOffset: -1 },
+      { label: "cout", insertText: "cout << \"\" << endl;", kind: "cpp", cursorOffset: -10 },
+      { label: "cin", insertText: "cin >> ;", kind: "cpp", cursorOffset: -1 },
+      { label: "endl", insertText: "endl", kind: "cpp" },
+      { label: "string", insertText: "string ", kind: "stl" },
+      { label: "vector", insertText: "vector<int> ", kind: "stl" },
+      { label: "map", insertText: "map<int, int> ", kind: "stl" },
+      { label: "set", insertText: "set<int> ", kind: "stl" },
+      { label: "pair", insertText: "pair<int, int> ", kind: "stl" },
+      { label: "push_back", insertText: "push_back()", kind: "stl", cursorOffset: -1 },
+      { label: "sort", insertText: "sort(.begin(), .end());", kind: "stl" },
+      { label: "getline", insertText: "getline(cin, );", kind: "cpp", cursorOffset: -2 },
       { label: "printf", insertText: "printf(\"\");", kind: "func", cursorOffset: -3 },
       { label: "scanf", insertText: "scanf(\"\", );", kind: "func", cursorOffset: -4 },
       { label: "fgets", insertText: "fgets(, , stdin);", kind: "func" },
@@ -1034,6 +1173,11 @@ int main() {
       { label: "malloc", insertText: "malloc(sizeof())", kind: "func", cursorOffset: -2 },
       { label: "free", insertText: "free();", kind: "func", cursorOffset: -2 },
       { label: "main", insertText: "int main() {\n    \n    return 0;\n}", kind: "snippet" },
+      { label: "#include <iostream>", insertText: "#include <iostream>", kind: "snippet" },
+      { label: "#include <bits/stdc++.h>", insertText: "#include <bits/stdc++.h>", kind: "snippet" },
+      { label: "#include <vector>", insertText: "#include <vector>", kind: "snippet" },
+      { label: "#include <string>", insertText: "#include <string>", kind: "snippet" },
+      { label: "#include <algorithm>", insertText: "#include <algorithm>", kind: "snippet" },
       { label: "#include <stdio.h>", insertText: "#include <stdio.h>", kind: "snippet" },
       { label: "#include <stdlib.h>", insertText: "#include <stdlib.h>", kind: "snippet" },
       { label: "#include <string.h>", insertText: "#include <string.h>", kind: "snippet" },
@@ -1084,8 +1228,8 @@ int main() {
         .replace(/\/\*[\s\S]*?\*\//g, " ");
 
       const keywordNames = new Set(
-        C_KEYWORDS.map((item) => item.label.toLowerCase()).concat([
-          "main", "printf", "scanf", "include", "stdio", "h"
+        C_CPP_KEYWORDS.map((item) => item.label.toLowerCase()).concat([
+          "main", "printf", "scanf", "cout", "cin", "endl", "std", "include", "stdio", "iostream", "h"
         ])
       );
 
@@ -1145,7 +1289,7 @@ int main() {
 
       const query = token.text.toLowerCase();
       const userVars = extractUserIdentifiers(cCodeInput.value, token.start, token.end);
-      const pool = [...userVars, ...C_KEYWORDS];
+      const pool = [...userVars, ...C_CPP_KEYWORDS];
 
       const startsWithMatches = pool.filter((item) =>
         item.label.toLowerCase().startsWith(query)
@@ -1377,7 +1521,7 @@ int main() {
       }
     });
 
-    // Runner & Inline scanf Flow (inside output box, one scanf -> Enter -> next printf/scanf)
+    // Runner & Inline scanf/cin Flow (inside output box)
     let activeSessionId = null;
     let pollTimer = null;
     let activeInlineInput = null;
@@ -1605,6 +1749,7 @@ int main() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             code: cCodeInput.value,
+            lang: langSelect.value,
             flags: getSelectedFlags()
           })
         });
@@ -1677,6 +1822,7 @@ int main() {
     renderTabs();
     const initialTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
     cCodeInput.value = initialTab ? initialTab.code : DEFAULT_CODE;
+    applyLanguageUI(initialTab ? initialTab.lang || detectLangFromFilename(initialTab.name) : "c");
     syncEditorVisuals();
   </script>
 </body>
