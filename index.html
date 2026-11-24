@@ -456,6 +456,36 @@
     const tabsList = document.getElementById("tabsList");
     const addTabBtn = document.getElementById("addTabBtn");
 
+    // Preserve native Ctrl+Z undo history whenever modifying editor text programmatically
+    function replaceEditorRange(start, end, text, cursorPos = null) {
+      cCodeInput.focus();
+      cCodeInput.setSelectionRange(start, end);
+
+      let applied = false;
+      try {
+        if (typeof document.execCommand === "function") {
+          applied = document.execCommand("insertText", false, text);
+        }
+      } catch (_) {
+        applied = false;
+      }
+
+      if (!applied) {
+        cCodeInput.setRangeText(text, start, end, "end");
+      }
+
+      if (typeof cursorPos === "number") {
+        const clamped = Math.max(0, Math.min(cursorPos, cCodeInput.value.length));
+        cCodeInput.setSelectionRange(clamped, clamped);
+      }
+
+      syncEditorVisuals(false);
+    }
+
+    function setEditorFullText(text) {
+      replaceEditorRange(0, cCodeInput.value.length, text, null);
+    }
+
     const DEFAULT_CODE = `#include <stdio.h>
 
 int main() {
@@ -615,7 +645,7 @@ int main() {
           clearErrorMarker();
           localStorage.setItem("akshay_c_active_tab_v1", activeTabId);
           renderTabs();
-          syncEditorVisuals();
+          syncEditorVisuals(false);
           hideAutocomplete();
           focusCodeEditor();
         });
@@ -659,7 +689,7 @@ int main() {
             clearErrorMarker();
             saveTabs();
             renderTabs();
-            syncEditorVisuals();
+            syncEditorVisuals(false);
             focusCodeEditor();
           });
           wrap.appendChild(closeBtn);
@@ -687,7 +717,7 @@ int main() {
       clearErrorMarker();
       saveTabs();
       renderTabs();
-      syncEditorVisuals();
+      syncEditorVisuals(false);
       focusCodeEditor();
     });
 
@@ -716,12 +746,12 @@ int main() {
       clearErrorMarker();
       saveTabs();
       renderTabs();
-      syncEditorVisuals();
+      syncEditorVisuals(false);
       focusCodeEditor();
     });
 
     saveFileBtn.addEventListener("click", () => {
-      saveTabs();
+      saveTabs(true);
       const current = tabs.find((t) => t.id === activeTabId);
       const defaultExt = langSelect.value === "cpp" ? "program.cpp" : "program.c";
       const filename = current ? current.name : defaultExt;
@@ -744,7 +774,6 @@ int main() {
       "register","restrict","return","short","signed","sizeof","static","struct",
       "switch","typedef","union","unsigned","void","volatile","while","_Bool",
       "_Complex","_Imaginary",
-      // C++ keywords
       "class","public","private","protected","namespace","using","template","typename",
       "new","delete","this","virtual","override","final","nullptr","true","false",
       "bool","try","catch","throw","operator","friend","explicit","constexpr","decltype",
@@ -755,7 +784,6 @@ int main() {
       "printf","scanf","fgets","puts","getchar","putchar","malloc",
       "calloc","realloc","free","strlen","strcpy","strncpy","strcat","strcmp",
       "abs","fabs","sqrt","pow","sin","cos","tan","EXIT_SUCCESS","EXIT_FAILURE","NULL",
-      // C++ STL & I/O
       "std","cout","cin","cerr","clog","endl","string","vector","pair","map",
       "unordered_map","set","unordered_set","stack","queue","priority_queue","deque",
       "list","array","sort","reverse","min","max","swap","push_back","pop_back",
@@ -950,7 +978,7 @@ int main() {
       clearErrorMarker();
     }
 
-    function syncEditorVisuals() {
+    function syncEditorVisuals(shouldSave = true) {
       const pos = cCodeInput.selectionStart || 0;
       const bracketPair = findMatchingBracketIndex(cCodeInput.value, pos);
       syntaxHighlightLayer.innerHTML = highlightCCode(cCodeInput.value, bracketPair);
@@ -960,7 +988,7 @@ int main() {
       lineHighlightBackdrop.scrollLeft = cCodeInput.scrollLeft;
       lineNumbersEl.scrollTop = cCodeInput.scrollTop;
       updateLineNumbersAndCursor();
-      saveTabs();
+      if (shouldSave) saveTabs();
       if (findReplaceBar && !findReplaceBar.classList.contains("hidden-bar")) {
         updateFindMatchCount();
       }
@@ -975,12 +1003,8 @@ int main() {
     });
 
     cCodeInput.addEventListener("click", () => {
-      syncEditorVisuals();
-      updateAutocompleteSuggestions();
-    });
-
-    cCodeInput.addEventListener("keyup", () => {
-      syncEditorVisuals();
+      hideAutocomplete();
+      syncEditorVisuals(false);
     });
 
     // Format Code
@@ -1010,8 +1034,8 @@ int main() {
     }
 
     formatCodeBtn.addEventListener("click", () => {
-      cCodeInput.value = formatCCode(cCodeInput.value);
-      syncEditorVisuals();
+      setEditorFullText(formatCCode(cCodeInput.value));
+      saveTabs();
       focusCodeEditor();
     });
 
@@ -1023,10 +1047,10 @@ int main() {
       }
       const start = cCodeInput.selectionStart;
       const end = cCodeInput.selectionEnd;
-      const val = cCodeInput.value;
-      cCodeInput.value = val.slice(0, start) + SNIPPETS[key] + val.slice(end);
+      const text = SNIPPETS[key];
+      replaceEditorRange(start, end, text, start + text.length);
+      saveTabs();
       snippetSelect.value = "";
-      syncEditorVisuals();
       focusCodeEditor();
     });
 
@@ -1066,7 +1090,7 @@ int main() {
       if (idx !== -1) {
         cCodeInput.focus();
         cCodeInput.setSelectionRange(idx, idx + q.length);
-        syncEditorVisuals();
+        syncEditorVisuals(false);
       }
       updateFindMatchCount();
     }
@@ -1098,10 +1122,8 @@ int main() {
       const selected = cCodeInput.value.slice(selStart, selEnd);
 
       if (selected === q) {
-        cCodeInput.value =
-          cCodeInput.value.slice(0, selStart) + rep + cCodeInput.value.slice(selEnd);
-        cCodeInput.setSelectionRange(selStart + rep.length, selStart + rep.length);
-        syncEditorVisuals();
+        replaceEditorRange(selStart, selEnd, rep, selStart + rep.length);
+        saveTabs();
       }
       findNextMatch();
     });
@@ -1111,8 +1133,9 @@ int main() {
       if (!q) return;
       const rep = replaceInput.value;
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      cCodeInput.value = cCodeInput.value.replace(new RegExp(escaped, "g"), rep);
-      syncEditorVisuals();
+      const updated = cCodeInput.value.replace(new RegExp(escaped, "g"), rep);
+      setEditorFullText(updated);
+      saveTabs();
       focusCodeEditor();
     });
 
@@ -1318,41 +1341,38 @@ int main() {
 
     function applySuggestion(suggestion) {
       if (!suggestion) return;
-      const val = cCodeInput.value;
-      const before = val.slice(0, currentTokenRange.start);
-      const after = val.slice(currentTokenRange.end);
       const inserted = suggestion.insertText;
-
-      cCodeInput.value = before + inserted + after;
-      const newCursorPos = suggestion.cursorOffset
-        ? before.length + inserted.length + suggestion.cursorOffset
-        : before.length + inserted.length;
+      const targetPos = suggestion.cursorOffset
+        ? currentTokenRange.start + inserted.length + suggestion.cursorOffset
+        : currentTokenRange.start + inserted.length;
 
       hideAutocomplete();
-      syncEditorVisuals();
-
-      requestAnimationFrame(() => {
-        cCodeInput.focus();
-        cCodeInput.setSelectionRange(newCursorPos, newCursorPos);
-        updateLineNumbersAndCursor();
-      });
+      replaceEditorRange(currentTokenRange.start, currentTokenRange.end, inserted, targetPos);
+      saveTabs();
     }
 
     // Editor Shortcuts
     const PAIRS = { "{": "}", "(": ")", "[": "]", "'": "'", '"': '"' };
 
     cCodeInput.addEventListener("input", () => {
-      syncEditorVisuals();
+      syncEditorVisuals(true);
       updateAutocompleteSuggestions();
     });
 
     cCodeInput.addEventListener("blur", () => {
       setTimeout(() => {
         if (document.activeElement !== cCodeInput) hideAutocomplete();
-      }, 120);
+      }, 100);
     });
 
     cCodeInput.addEventListener("keydown", (e) => {
+      // Side arrow keys immediately dismiss open suggestion popup without accepting
+      if (isPopupOpen() && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        hideAutocomplete();
+        requestAnimationFrame(updateLineNumbersAndCursor);
+        return;
+      }
+
       if (isPopupOpen()) {
         if (e.key === "ArrowDown") {
           e.preventDefault();
@@ -1379,6 +1399,21 @@ int main() {
         }
       }
 
+      // Navigation keys never reopen suggestions
+      if (
+        e.key === "ArrowLeft" ||
+        e.key === "ArrowRight" ||
+        e.key === "ArrowUp" ||
+        e.key === "ArrowDown" ||
+        e.key === "Home" ||
+        e.key === "End" ||
+        e.key === "Escape"
+      ) {
+        hideAutocomplete();
+        requestAnimationFrame(updateLineNumbersAndCursor);
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+      }
+
       const start = cCodeInput.selectionStart;
       const end = cCodeInput.selectionEnd;
       const val = cCodeInput.value;
@@ -1388,14 +1423,13 @@ int main() {
         e.preventDefault();
         const lineStart = val.lastIndexOf("\n", start - 1) + 1;
         const lineEndIdx = val.indexOf("\n", start);
-        const nextVal =
-          lineEndIdx === -1
-            ? val.slice(0, Math.max(0, lineStart - 1))
-            : val.slice(0, lineStart) + val.slice(lineEndIdx + 1);
-        cCodeInput.value = nextVal;
-        const nextPos = Math.min(lineStart, nextVal.length);
-        cCodeInput.setSelectionRange(nextPos, nextPos);
-        syncEditorVisuals();
+        if (lineEndIdx === -1) {
+          const delStart = Math.max(0, lineStart - 1);
+          replaceEditorRange(delStart, val.length, "", delStart);
+        } else {
+          replaceEditorRange(lineStart, lineEndIdx + 1, "", lineStart);
+        }
+        saveTabs();
         return;
       }
 
@@ -1414,9 +1448,8 @@ int main() {
           )
           .join("\n");
 
-        cCodeInput.value = val.slice(0, lineStart) + updated + val.slice(lineEnd);
-        cCodeInput.setSelectionRange(lineStart, lineStart + updated.length);
-        syncEditorVisuals();
+        replaceEditorRange(lineStart, lineEnd, updated, lineStart + updated.length);
+        saveTabs();
         return;
       }
 
@@ -1427,10 +1460,9 @@ int main() {
         const lineEndIdx = val.indexOf("\n", start);
         const lineEnd = lineEndIdx === -1 ? val.length : lineEndIdx;
         const currentLine = val.slice(lineStart, lineEnd);
-        cCodeInput.value =
-          val.slice(0, lineEnd) + "\n" + currentLine + val.slice(lineEnd);
-        cCodeInput.setSelectionRange(lineEnd + 1, lineEnd + 1 + currentLine.length);
-        syncEditorVisuals();
+        const insertion = "\n" + currentLine;
+        replaceEditorRange(lineEnd, lineEnd, insertion, lineEnd + 1 + currentLine.length);
+        saveTabs();
         return;
       }
 
@@ -1445,17 +1477,16 @@ int main() {
         const temp = lines[lineIdx];
         lines[lineIdx] = lines[targetIdx];
         lines[targetIdx] = temp;
-        cCodeInput.value = lines.join("\n");
-        syncEditorVisuals();
+        setEditorFullText(lines.join("\n"));
+        saveTabs();
         return;
       }
 
       // Tab : Insert 4 spaces
       if (e.key === "Tab") {
         e.preventDefault();
-        cCodeInput.value = val.slice(0, start) + "    " + val.slice(end);
-        cCodeInput.setSelectionRange(start + 4, start + 4);
-        syncEditorVisuals();
+        replaceEditorRange(start, end, "    ", start + 4);
+        saveTabs();
         return;
       }
 
@@ -1472,17 +1503,13 @@ int main() {
         if (charBefore === "{" && charAfter === "}") {
           const innerIndent = baseIndent + "    ";
           const insertion = `\n${innerIndent}\n${baseIndent}`;
-          cCodeInput.value = val.slice(0, start) + insertion + val.slice(end);
-          const cursorAt = start + 1 + innerIndent.length;
-          cCodeInput.setSelectionRange(cursorAt, cursorAt);
+          replaceEditorRange(start, end, insertion, start + 1 + innerIndent.length);
         } else {
           const extraIndent = charBefore === "{" ? "    " : "";
           const insertion = `\n${baseIndent}${extraIndent}`;
-          cCodeInput.value = val.slice(0, start) + insertion + val.slice(end);
-          const cursorAt = start + insertion.length;
-          cCodeInput.setSelectionRange(cursorAt, cursorAt);
+          replaceEditorRange(start, end, insertion, start + insertion.length);
         }
-        syncEditorVisuals();
+        saveTabs();
         return;
       }
 
@@ -1497,9 +1524,8 @@ int main() {
           return;
         }
         e.preventDefault();
-        cCodeInput.value = val.slice(0, start) + e.key + closeChar + val.slice(end);
-        cCodeInput.setSelectionRange(start + 1, start + 1);
-        syncEditorVisuals();
+        replaceEditorRange(start, end, e.key + closeChar, start + 1);
+        saveTabs();
         return;
       }
     });
@@ -1538,7 +1564,7 @@ int main() {
     function focusCodeEditor() {
       requestAnimationFrame(() => {
         cCodeInput.focus();
-        syncEditorVisuals();
+        syncEditorVisuals(false);
       });
     }
 
@@ -1795,14 +1821,15 @@ int main() {
 
     clearRunnerBtn.addEventListener("click", async () => {
       await closeActiveSessionOnServer(true);
-      cCodeInput.value = "";
+      setEditorFullText("");
+      saveTabs();
       cOutputText.innerHTML = "";
       clearErrorMarker();
       execMetaLabel.textContent = "Cleared";
       runCBtn.disabled = false;
       runCBtn.textContent = "\u25B6 Run (F9)";
       hideAutocomplete();
-      syncEditorVisuals();
+      syncEditorVisuals(false);
       focusCodeEditor();
     });
 
@@ -1823,7 +1850,7 @@ int main() {
     const initialTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
     cCodeInput.value = initialTab ? initialTab.code : DEFAULT_CODE;
     applyLanguageUI(initialTab ? initialTab.lang || detectLangFromFilename(initialTab.name) : "c");
-    syncEditorVisuals();
+    syncEditorVisuals(false);
   </script>
 </body>
 </html>
