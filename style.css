@@ -47,7 +47,51 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Main App Layout */
+/* Drag shield so iframe or text selection does not interrupt dragging */
+.drag-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: transparent;
+  user-select: none;
+}
+
+/* Compact Top When PDF Is Open */
+body.pdf-compact-top .header {
+  padding: 6px 16px;
+}
+
+body.pdf-compact-top .header h1 {
+  font-size: 15px;
+}
+
+body.pdf-compact-top .subtitle {
+  display: none;
+}
+
+body.pdf-compact-top .container {
+  padding: 8px 12px 10px;
+}
+
+body.pdf-compact-top .card-top {
+  padding: 6px 12px;
+}
+
+body.pdf-compact-top .file-tabs-bar {
+  padding: 4px 10px 0;
+}
+
+/* Zen / Focus Mode */
+body.zen-mode .left-sidebar,
+body.zen-mode .header,
+body.zen-mode .shortcut-strip {
+  display: none;
+}
+
+body.zen-mode .container {
+  padding: 8px 10px 10px;
+}
+
 .workspace-shell {
   display: flex;
   min-height: 100vh;
@@ -219,6 +263,13 @@ body {
   flex-wrap: wrap;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .header h1 {
   font-size: 18px;
   font-weight: 700;
@@ -304,7 +355,6 @@ body.light .title-and-flags h2 {
   flex-wrap: wrap;
 }
 
-/* Dropdowns & Flags — Dark Mode */
 .mini-select {
   background: #111827;
   color: #f1f5f9;
@@ -335,7 +385,6 @@ body.light .title-and-flags h2 {
   color: #fcd34d;
 }
 
-/* Dropdowns & Flags — Crisp Light Mode */
 body.light #langSelect {
   background: #dbeafe;
   border-color: #2563eb;
@@ -379,7 +428,6 @@ body.light .flag-check {
   accent-color: #2563eb;
 }
 
-/* Action Buttons */
 .btn-group {
   display: flex;
   align-items: center;
@@ -406,7 +454,6 @@ body.light .flag-check {
   transform: translateY(1px);
 }
 
-/* Toggle Theme Button */
 #themeToggle.btn {
   background: #f59e0b;
   border: 1px solid #d97706;
@@ -420,7 +467,6 @@ body.light #themeToggle.btn {
   color: #1e293b;
 }
 
-/* Run Button */
 #runCBtn.btn {
   background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
   border-color: #166534;
@@ -428,11 +474,16 @@ body.light #themeToggle.btn {
   box-shadow: 0 2px 8px rgba(21, 128, 61, 0.25);
 }
 
-/* Secondary Buttons — Dark Mode */
 .btn.secondary {
   background: #242c3d;
   color: #f1f5f9;
   border: 1px solid #364156;
+}
+
+#openPdfBtn.btn.secondary {
+  background: rgba(234, 88, 12, 0.24);
+  border-color: #fb923c;
+  color: #fdba74;
 }
 
 #openFileBtn.btn.secondary {
@@ -465,7 +516,12 @@ body.light #themeToggle.btn {
   color: #fda4af;
 }
 
-/* Secondary Buttons — Crisp, Solid Light Mode */
+body.light #openPdfBtn.btn.secondary {
+  background: #ea580c;
+  border-color: #c2410c;
+  color: #ffffff;
+}
+
 body.light #openFileBtn.btn.secondary {
   background: #2563eb;
   border-color: #1d4ed8;
@@ -667,17 +723,143 @@ body.light .find-count {
   color: #92400e;
 }
 
+/* Workspace Body: Resizable PDF + Code/Output */
+.workspace-body {
+  flex: 1;
+  display: flex;
+  min-height: 440px;
+  width: 100%;
+}
+
+.hidden-pane {
+  display: none !important;
+}
+
+/* Draggable Splitters */
+.resizer {
+  flex: 0 0 auto;
+  background: #232d40;
+  transition: background-color 0.15s ease;
+  user-select: none;
+  z-index: 15;
+}
+
+.resizer:hover,
+.resizer.dragging {
+  background: #38bdf8;
+}
+
+body.light .resizer {
+  background: #cbd5e1;
+}
+
+body.light .resizer:hover,
+body.light .resizer.dragging {
+  background: #2563eb;
+}
+
+.resizer-v {
+  width: 6px;
+  cursor: col-resize;
+}
+
+.resizer-h {
+  height: 6px;
+  width: 100%;
+  cursor: row-resize;
+}
+
+/* Side PDF Dock Pane */
+.pdf-dock-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  min-height: 420px;
+  background: #0d1118;
+}
+
+body.light .pdf-dock-pane {
+  background: #f1f5f9;
+}
+
+.pdf-dock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: #1b2232;
+  border-bottom: 1px solid var(--border-color);
+  gap: 8px;
+}
+
+body.light .pdf-dock-header {
+  background: #e2e8f0;
+  border-bottom-color: #cbd5e1;
+}
+
+.pdf-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pdf-badge {
+  background: #ea580c;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.pdf-filename {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pdf-frame {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 390px;
+  border: none;
+  background: #ffffff;
+}
+
 /* Split Editor & Output Workspace */
 .split-grid {
   flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  min-width: 0;
   min-height: 440px;
 }
 
 @media (max-width: 900px) {
+  .workspace-body {
+    flex-direction: column;
+  }
+  .pdf-dock-pane {
+    width: 100% !important;
+    min-height: 300px;
+  }
   .split-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column !important;
+  }
+  .resizer {
+    display: none;
   }
 }
 
@@ -687,10 +869,6 @@ body.light .find-count {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-}
-
-.pane-left {
-  border-right: 1px solid var(--border-color);
 }
 
 .pane-header-row {
@@ -762,6 +940,7 @@ body.light .meta-pill {
   font-weight: 700;
   padding: 2px 9px;
   border-radius: 999px;
+  cursor: pointer;
 }
 
 .error-badge.badge-error {
@@ -780,21 +959,14 @@ body.light .meta-pill {
   display: none !important;
 }
 
-/* Editor Wrapper, Gutter & Full-Width Code Surface */
 .editor-wrapper {
   position: relative;
   flex: 1;
   display: flex;
   width: 100%;
-  min-height: 380px;
+  min-height: 120px;
   background: var(--bg-editor);
   overflow: hidden;
-}
-
-.code-surface {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
 }
 
 .line-numbers {
@@ -803,7 +975,7 @@ body.light .meta-pill {
   padding: 12px 8px 12px 0;
   text-align: right;
   font-family: Consolas, "Courier New", monospace;
-  font-size: 15px;
+  font-size: var(--editor-font-size, 15px);
   line-height: 1.5;
   color: #64748b;
   background: #11151d;
@@ -829,7 +1001,6 @@ body.light .line-numbers {
   font-weight: 700;
 }
 
-/* Autocomplete Popup */
 .autocomplete-popup {
   position: absolute;
   bottom: 14px;
@@ -892,7 +1063,6 @@ body.light .autocomplete-item.active .suggestion-kind {
   color: #e0f2fe;
 }
 
-/* Output Console Surface */
 .output-box {
   flex: 1;
   padding: 14px 16px;
@@ -910,7 +1080,85 @@ body.light .output-box {
   color: #0f172a;
 }
 
-/* Bottom Shortcut Strip */
+.testcase-panel {
+  border-top: 1px solid var(--border-color);
+  background: #131924;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+body.light .testcase-panel {
+  background: #f1f5f9;
+}
+
+.testcase-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.testcase-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #93c5fd;
+}
+
+body.light .testcase-title {
+  color: #1e3a8a;
+}
+
+.testcase-presets {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.preset-chip {
+  background: rgba(56, 189, 248, 0.14);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.preset-chip:hover {
+  background: rgba(56, 189, 248, 0.25);
+}
+
+body.light .preset-chip {
+  background: #dbeafe;
+  color: #1e3a8a;
+  border-color: #93c5fd;
+}
+
+.testcase-textarea {
+  width: 100%;
+  background: #0c1017;
+  color: #e2e8f0;
+  border: 1px solid #283142;
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  resize: vertical;
+  min-height: 40px;
+  max-height: 100px;
+}
+
+body.light .testcase-textarea {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
 .shortcut-strip {
   display: flex;
   flex-wrap: wrap;

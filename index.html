@@ -6,7 +6,7 @@
   <title>This Is Akshay Official Compiler — Online C &amp; C++ Code Runner</title>
   <meta
     name="description"
-    content="This Is Akshay Official Compiler is a browser-based C and C++ code editor and gcc/g++ compiler with syntax highlighting, bracket matching, line error markers, interactive input support, and multi-tab editing."
+    content="This Is Akshay Official Compiler is a browser-based C and C++ code editor and gcc/g++ compiler with syntax highlighting, bracket matching, line error markers, DSA snippets, custom test cases, side PDF viewer, resizable panes, and multi-tab editing."
   />
   <meta
     name="keywords"
@@ -19,7 +19,7 @@
   <meta property="og:title" content="This Is Akshay Official Compiler — Online C &amp; C++ Code Runner" />
   <meta
     property="og:description"
-    content="Compile and run C and C++ programs online with real gcc and g++, interactive input, syntax highlighting, and keyboard shortcuts."
+    content="Compile and run C and C++ programs online with real gcc and g++, interactive input, syntax highlighting, DSA snippets, side PDF notes, resizable panes, and keyboard shortcuts."
   />
   <meta property="og:url" content="https://akshay-official-compiler.onrender.com/" />
 
@@ -31,9 +31,10 @@
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Any (Web Browser)",
     "url": "https://akshay-official-compiler.onrender.com/",
-    "description": "Online C and C++ code editor and gcc/g++ runner with multi-tab support, interactive input handling, and error line highlighting."
+    "description": "Online C and C++ code editor and gcc/g++ runner with multi-tab support, interactive input handling, DSA templates, resizable side PDF viewer, and error line highlighting."
   }
   </script>
+
   <link rel="stylesheet" href="style.css" />
   <style>
     .code-surface {
@@ -41,35 +42,49 @@
       background: #14171f;
       color: #f8f8f2;
       overflow: hidden;
+      flex: 1;
+      min-width: 0;
+      height: 100%;
     }
+
     .line-backdrop {
       position: absolute;
       inset: 0;
       pointer-events: none;
       z-index: 1;
     }
+
     .backdrop-line {
-      height: 1.5em;
+      height: calc(var(--editor-font-size, 15px) * 1.5);
     }
+
     .backdrop-line.line-active {
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(56, 189, 248, 0.08);
     }
+
+    body.light .backdrop-line.line-active {
+      background: rgba(37, 99, 235, 0.08);
+    }
+
     .backdrop-line.line-error {
       background: rgba(249, 38, 114, 0.22);
     }
+
     .backdrop-line.line-warning {
       background: rgba(230, 219, 116, 0.18);
     }
+
     .syntax-layer,
     .code-editor {
       position: relative;
       z-index: 2;
       font-family: Consolas, "Courier New", monospace;
-      font-size: 15px;
+      font-size: var(--editor-font-size, 15px);
       line-height: 1.5;
       tab-size: 4;
       white-space: pre;
     }
+
     .syntax-layer {
       position: absolute;
       inset: 0;
@@ -79,6 +94,7 @@
       color: #f8f8f2;
       overflow: hidden;
     }
+
     .code-editor {
       width: 100%;
       height: 100%;
@@ -92,43 +108,52 @@
       overflow: auto;
     }
 
-    /* Distinct syntax token colours */
     .tok-comment {
       color: #75715e;
       font-style: italic;
     }
+
     .tok-preproc {
       color: #fd971f;
     }
+
     .tok-keyword {
       color: #f9a825;
       font-weight: 600;
     }
+
     .tok-main {
       color: #ffffff;
       font-weight: 700;
     }
+
     .tok-builtin {
       color: #ef5350;
       font-weight: 500;
     }
+
     .tok-string {
       color: #4ade80;
     }
+
     .tok-fmt {
       color: #facc15;
       font-weight: 600;
     }
+
     .tok-escape {
       color: #c084fc;
     }
+
     .tok-addr {
       color: #38bdf8;
       font-weight: 700;
     }
+
     .tok-number {
       color: #fb7185;
     }
+
     .tok-bracket-match {
       background: rgba(255, 213, 79, 0.25);
       outline: 1px solid #ffd54f;
@@ -139,52 +164,65 @@
       background: #fafafa;
       color: #1e1e1e;
     }
+
     body.light .syntax-layer {
       color: #1e1e1e;
     }
+
     body.light .code-editor {
       caret-color: #1e1e1e;
     }
+
     body.light .tok-main {
       color: #111111;
     }
+
     body.light .tok-keyword {
       color: #b26a00;
     }
+
     body.light .tok-preproc {
       color: #c65102;
     }
+
     body.light .tok-builtin {
       color: #c62828;
     }
+
     body.light .tok-string {
       color: #15803d;
     }
+
     body.light .tok-fmt {
       color: #a16207;
     }
+
     body.light .tok-escape {
       color: #7e22ce;
     }
+
     body.light .tok-addr {
       color: #0284c7;
     }
+
     body.light .tok-number {
       color: #be123c;
     }
 
-    /* Inline input directly inside the output box (no separate input bar) */
     #inlineInputBar {
       display: none !important;
     }
+
     .output-text {
       white-space: pre-wrap;
       word-break: break-word;
     }
+
     .out-typed-input {
       color: #4ade80;
       font-weight: 600;
     }
+
     .inline-box-input {
       display: inline-block;
       background: transparent;
@@ -200,6 +238,7 @@
       width: 55%;
       padding: 0 2px;
     }
+
     body.light .out-typed-input,
     body.light .inline-box-input {
       color: #15803d;
@@ -224,8 +263,8 @@
         <section id="notesSection" class="drawer-card">
           <h2>Quick Notes (Auto-Saved)</h2>
           <p class="hint">Yahan jo bhi likhoge, wo tumhare browser mein apne aap save ho jayega.</p>
-          <textarea id="quickNotes" placeholder="Aaj ke tasks, yaad rakhne wali baatein, ya notes likho..."></textarea>
-          <button id="clearNotes" class="btn secondary">Clear Notes</button>
+          <textarea id="quickNotes" placeholder="Aaj ke tasks, DSA points, ya notes likho..."></textarea>
+          <button id="clearNotes" class="btn secondary" type="button">Clear Notes</button>
         </section>
 
         <section id="linksSection" class="drawer-card">
@@ -244,11 +283,14 @@
       <header class="header">
         <div>
           <h1>This Is Akshay Official Compiler</h1>
-          <p class="subtitle">Offline C &amp; C++ IDE &#8226; Error Line Mark &#8226; Open/Save .c/.cpp &#8226; Bracket Match &#8226; Snippets &#8226; Find/Replace</p>
+          <p class="subtitle">C &amp; C++ IDE &#8226; Resizable PDF &amp; Panes &#8226; DSA Snippets &#8226; Custom Test Cases &#8226; Error Jump</p>
         </div>
 
         <div class="header-actions">
-          <button id="themeToggle" class="btn">Toggle Theme</button>
+          <button id="zoomOutBtn" class="btn secondary mini-btn" type="button" title="Decrease Editor Font (Ctrl+-)">A-</button>
+          <button id="zoomResetBtn" class="btn secondary mini-btn" type="button" title="Reset Font Size (Ctrl+0)">100%</button>
+          <button id="zoomInBtn" class="btn secondary mini-btn" type="button" title="Increase Editor Font (Ctrl++)">A+</button>
+          <button id="themeToggle" class="btn" type="button">Toggle Theme</button>
         </div>
       </header>
 
@@ -263,18 +305,22 @@
                   <option value="c" selected>C (gcc)</option>
                   <option value="cpp">C++ (g++)</option>
                 </select>
+
                 <label class="flag-check" title="Show compiler warnings (-Wall)">
                   <input type="checkbox" id="flagWall" checked /> -Wall
                 </label>
+
                 <label class="flag-check" title="Link math library (-lm)">
                   <input type="checkbox" id="flagLm" checked /> -lm
                 </label>
+
                 <select id="stdSelect" class="mini-select" title="Language Standard">
                   <option value="-std=c17" selected>C17</option>
                   <option value="-std=c11">C11</option>
                   <option value="-std=c99">C99</option>
                 </select>
-                <select id="snippetSelect" class="mini-select" title="Insert C / C++ Snippet">
+
+                <select id="snippetSelect" class="mini-select" title="Insert C / C++ / DSA Snippet">
                   <option value="">+ Snippet</option>
                   <option value="forloop">for Loop</option>
                   <option value="whileloop">while Loop</option>
@@ -282,18 +328,28 @@
                   <option value="arrayinput">C Array Input/Print</option>
                   <option value="structdef">struct Template</option>
                   <option value="cppmain">C++ Starter (iostream)</option>
+                  <option value="cppfastio">DSA Fast I/O Template</option>
                   <option value="cppvector">C++ Vector Input/Print</option>
                   <option value="cppclass">C++ Class Template</option>
+                  <option value="dsabinary">DSA Binary Search</option>
+                  <option value="dsaprefix">DSA Prefix Sum</option>
+                  <option value="dsatree">DSA Tree DFS/BFS</option>
                 </select>
+
+                <button id="openPdfBtn" class="btn secondary mini-btn" type="button" title="Open a PDF from file explorer on the side">Open PDF</button>
+                <input id="pdfPickerInput" type="file" accept=".pdf,application/pdf" style="display:none" />
+
                 <button id="openFileBtn" class="btn secondary mini-btn" type="button" title="Open .c / .cpp / .h file">Open File</button>
                 <button id="saveFileBtn" class="btn secondary mini-btn" type="button" title="Save current tab">Save File</button>
                 <input id="filePickerInput" type="file" accept=".c,.cpp,.cc,.cxx,.h,.hpp,.txt" style="display:none" />
+
                 <button id="formatCodeBtn" class="btn secondary mini-btn" type="button" title="Auto Format / Indent">Format</button>
-                <button id="findToggleBtn" class="btn secondary mini-btn" type="button" title="Find & Replace (Ctrl+F)">Find</button>
+                <button id="findToggleBtn" class="btn secondary mini-btn" type="button" title="Find &amp; Replace (Ctrl+F)">Find</button>
               </div>
             </div>
 
             <div class="btn-group">
+              <button id="zenModeBtn" class="btn secondary" type="button" title="Toggle Fullscreen Focus / Zen Mode">Zen Mode</button>
               <button id="clearRunnerBtn" class="btn secondary" type="button">Clear</button>
               <button id="runCBtn" class="btn" type="button" title="Run code (F9)">&#9654; Run (F9)</button>
             </div>
@@ -316,54 +372,96 @@
             <button id="closeFindBtn" class="btn secondary mini-btn" type="button">&times;</button>
           </div>
 
-          <!-- Half-Half Split Workspace -->
-          <div class="split-grid">
-            <!-- Left Half: Editor -->
-            <div class="pane-left">
-              <div class="pane-header-row">
-                <span id="editorLangLabel" class="output-label">C / C++ Code:</span>
-                <div class="output-meta-group">
-                  <span id="errorLineBadge" class="error-badge hidden-badge"></span>
-                  <span id="cursorPosLabel" class="meta-pill">Ln 1, Col 1</span>
+          <!-- Main Split Area (Resizable PDF Pane + Resizable Code/Output Grid) -->
+          <div id="workspaceBody" class="workspace-body">
+            <!-- Side PDF Viewer Pane -->
+            <aside id="pdfDockPane" class="pdf-dock-pane hidden-pane" aria-label="PDF Reference Viewer">
+              <div class="pdf-dock-header">
+                <div class="pdf-title-wrap">
+                  <span class="pdf-badge">PDF</span>
+                  <span id="pdfFileNameLabel" class="pdf-filename">No PDF loaded</span>
+                </div>
+                <div class="pdf-actions">
+                  <button id="changePdfBtn" class="btn secondary tiny-btn" type="button" title="Choose another PDF">Change</button>
+                  <button id="closePdfBtn" class="btn secondary tiny-btn" type="button" title="Close PDF Viewer">&times; Close</button>
+                </div>
+              </div>
+              <iframe id="pdfViewerFrame" class="pdf-frame" title="PDF Viewer"></iframe>
+            </aside>
+
+            <!-- Draggable Splitter Between PDF & Code/Output -->
+            <div id="pdfResizer" class="resizer resizer-v hidden-pane" title="Drag to resize PDF &amp; Code panes" role="separator" aria-orientation="vertical"></div>
+
+            <!-- Editor + Output Split Grid -->
+            <div id="splitGrid" class="split-grid">
+              <!-- Editor Pane -->
+              <div id="codePane" class="pane-left">
+                <div class="pane-header-row">
+                  <span id="editorLangLabel" class="output-label">C / C++ Code:</span>
+                  <div class="output-meta-group">
+                    <span id="errorLineBadge" class="error-badge hidden-badge" title="Click to jump to error/warning line"></span>
+                    <span id="cursorPosLabel" class="meta-pill">Ln 1, Col 1</span>
+                  </div>
+                </div>
+
+                <div class="editor-wrapper">
+                  <div id="lineNumbers" class="line-numbers" aria-hidden="true">1</div>
+
+                  <div class="code-surface">
+                    <div id="lineHighlightBackdrop" class="line-backdrop" aria-hidden="true"></div>
+                    <pre id="syntaxHighlightLayer" class="syntax-layer" aria-hidden="true"></pre>
+                    <textarea id="cCodeInput" class="code-editor" spellcheck="false" wrap="off"></textarea>
+                  </div>
+
+                  <ul id="autocompletePopup" class="autocomplete-popup hidden-popup" role="listbox" aria-label="Code suggestions"></ul>
                 </div>
               </div>
 
-              <div class="editor-wrapper">
-                <div id="lineNumbers" class="line-numbers" aria-hidden="true">1</div>
+              <!-- Draggable Splitter Between Code Editor & Output -->
+              <div id="paneResizer" class="resizer resizer-v" title="Drag to resize Code &amp; Output boxes" role="separator"></div>
 
-                <div class="code-surface">
-                  <div id="lineHighlightBackdrop" class="line-backdrop" aria-hidden="true"></div>
-                  <pre id="syntaxHighlightLayer" class="syntax-layer" aria-hidden="true"></pre>
-                  <textarea id="cCodeInput" class="code-editor" spellcheck="false" wrap="off"></textarea>
+              <!-- Output + Custom Test Cases Pane -->
+              <div id="outputPane" class="pane-right">
+                <div class="pane-header-row">
+                  <span class="output-label">Output:</span>
+                  <div class="output-meta-group">
+                    <span id="execMetaLabel" class="meta-pill">Ready</span>
+                    <button id="copyOutputBtn" class="btn secondary tiny-btn" type="button" title="Copy output">Copy</button>
+                  </div>
                 </div>
 
-                <ul id="autocompletePopup" class="autocomplete-popup hidden-popup" role="listbox" aria-label="Code suggestions"></ul>
-              </div>
-            </div>
-
-            <!-- Right Half: Interactive Output Box -->
-            <div class="pane-right">
-              <div class="pane-header-row">
-                <span class="output-label">Output:</span>
-                <div class="output-meta-group">
-                  <span id="execMetaLabel" class="meta-pill">Ready</span>
-                  <button id="copyOutputBtn" class="btn secondary tiny-btn" type="button" title="Copy output">Copy</button>
+                <div id="outputSurface" class="output-box">
+                  <pre id="cOutputText" class="output-text">Neeche "Run" (ya F9) dabao aur output dekho...</pre>
                 </div>
-              </div>
 
-              <div id="outputSurface" class="output-box">
-                <pre id="cOutputText" class="output-text">Neeche "Run" (ya F9) dabao aur output dekho...</pre>
-              </div>
+                <div id="inlineInputBar" class="inline-input-bar hidden-bar">
+                  <span class="inline-prompt-label">Input &gt;</span>
+                  <input
+                    id="inlineStdinInput"
+                    type="text"
+                    class="inline-stdin-input"
+                    placeholder="input likho aur Enter dabao..."
+                    autocomplete="off"
+                  />
+                </div>
 
-              <div id="inlineInputBar" class="inline-input-bar hidden-bar">
-                <span class="inline-prompt-label">Input &gt;</span>
-                <input
-                  id="inlineStdinInput"
-                  type="text"
-                  class="inline-stdin-input"
-                  placeholder="input likho aur Enter dabao..."
-                  autocomplete="off"
-                />
+                <div class="testcase-panel">
+                  <div class="testcase-toolbar">
+                    <span class="testcase-title">Custom Test Input (Batch)</span>
+                    <div class="testcase-presets">
+                      <button type="button" class="preset-chip" data-preset="sample1">Sample 1</button>
+                      <button type="button" class="preset-chip" data-preset="sample2">Sample 2</button>
+                      <button type="button" class="preset-chip" data-preset="edge">Edge Case</button>
+                      <button id="runBatchBtn" type="button" class="btn secondary tiny-btn" title="Run with custom input below (non-interactive)">Run Test Input</button>
+                    </div>
+                  </div>
+                  <textarea
+                    id="customTestInput"
+                    class="testcase-textarea"
+                    rows="2"
+                    placeholder="Batch test input yahan likho (e.g., 5&#10;10 20 30 40 50) aur 'Run Test Input' dabao..."
+                  ></textarea>
+                </div>
               </div>
             </div>
           </div>
@@ -378,6 +476,7 @@
             <span><b>Ctrl+Shift+K</b> Delete Line</span>
             <span><b>Alt+ &#8593; / &#8595;</b> Move Line</span>
             <span><b>Ctrl+F</b> Find/Replace</span>
+            <span><b>Drag Divider</b> Resize Panes</span>
           </div>
         </section>
       </main>
@@ -389,17 +488,48 @@
     const notesArea = document.getElementById("quickNotes");
     const clearBtn = document.getElementById("clearNotes");
     const themeBtn = document.getElementById("themeToggle");
+    const zenModeBtn = document.getElementById("zenModeBtn");
+    const zoomInBtn = document.getElementById("zoomInBtn");
+    const zoomOutBtn = document.getElementById("zoomOutBtn");
+    const zoomResetBtn = document.getElementById("zoomResetBtn");
 
     notesArea.value = localStorage.getItem("personal_notes") || "";
     notesArea.addEventListener("input", () => {
       localStorage.setItem("personal_notes", notesArea.value);
     });
+
     clearBtn.addEventListener("click", () => {
       notesArea.value = "";
       localStorage.removeItem("personal_notes");
     });
+
     themeBtn.addEventListener("click", () => {
       document.body.classList.toggle("light");
+    });
+
+    async function setZenAndFullscreen(enable) {
+      document.body.classList.toggle("zen-mode", enable);
+      zenModeBtn.textContent = enable ? "Exit Zen" : "Zen Mode";
+
+      try {
+        if (enable && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        } else if (!enable && document.fullscreenElement && document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      } catch (_) {}
+    }
+
+    zenModeBtn.addEventListener("click", () => {
+      const nextState = !document.body.classList.contains("zen-mode");
+      setZenAndFullscreen(nextState);
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement && document.body.classList.contains("zen-mode")) {
+        document.body.classList.remove("zen-mode");
+        zenModeBtn.textContent = "Zen Mode";
+      }
     });
 
     const leftSidebar = document.getElementById("leftSidebar");
@@ -409,8 +539,185 @@
     sidebarArrowBtn.addEventListener("click", () => {
       const isExpanded = leftSidebar.classList.toggle("expanded");
       sidebarArrowBtn.setAttribute("aria-expanded", isExpanded ? "true" : "false");
-      sidebarArrowIcon.innerHTML = isExpanded ? "&#9662;" : "&#9656;";
+      sidebarArrowIcon.innerHTML = isExpanded ? "&#9666;" : "&#9656;";
     });
+
+    // Resizable Panes (PDF Dock + Code Editor + Output Box)
+    const openPdfBtn = document.getElementById("openPdfBtn");
+    const changePdfBtn = document.getElementById("changePdfBtn");
+    const closePdfBtn = document.getElementById("closePdfBtn");
+    const pdfPickerInput = document.getElementById("pdfPickerInput");
+    const pdfDockPane = document.getElementById("pdfDockPane");
+    const pdfResizer = document.getElementById("pdfResizer");
+    const paneResizer = document.getElementById("paneResizer");
+    const splitGrid = document.getElementById("splitGrid");
+    const codePane = document.getElementById("codePane");
+    const outputPane = document.getElementById("outputPane");
+    const pdfViewerFrame = document.getElementById("pdfViewerFrame");
+    const pdfFileNameLabel = document.getElementById("pdfFileNameLabel");
+    const workspaceBody = document.getElementById("workspaceBody");
+
+    let currentPdfBlobUrl = null;
+    let pdfRatio = 0.5;   // PDF width ratio inside workspaceBody
+    let subRatio = 0.55;  // Code editor size ratio inside splitGrid
+
+    function applyPaneSizes() {
+      const pdfOpen = workspaceBody.classList.contains("pdf-active");
+      const stackedSub = pdfOpen && window.innerWidth > 900;
+
+      paneResizer.classList.toggle("resizer-h", stackedSub);
+      paneResizer.classList.toggle("resizer-v", !stackedSub);
+
+      if (pdfOpen) {
+        const totalW = workspaceBody.clientWidth || window.innerWidth;
+        const clampedPdfW = Math.max(240, Math.min(totalW - 260, totalW * pdfRatio));
+        pdfDockPane.style.width = clampedPdfW + "px";
+        pdfDockPane.style.flex = "0 0 auto";
+        splitGrid.style.width = "auto";
+        splitGrid.style.flex = "1 1 0";
+      } else {
+        pdfDockPane.style.width = "";
+        pdfDockPane.style.flex = "";
+        splitGrid.style.flex = "1 1 auto";
+        splitGrid.style.width = "100%";
+      }
+
+      if (stackedSub) {
+        splitGrid.style.flexDirection = "column";
+        const totalH = splitGrid.clientHeight || 500;
+        const clampedTopH = Math.max(130, Math.min(totalH - 130, totalH * subRatio));
+        codePane.style.height = clampedTopH + "px";
+        codePane.style.width = "";
+        codePane.style.flex = "0 0 auto";
+        outputPane.style.height = "";
+        outputPane.style.width = "";
+        outputPane.style.flex = "1 1 0";
+      } else if (window.innerWidth > 900) {
+        splitGrid.style.flexDirection = "row";
+        const totalW = splitGrid.clientWidth || 800;
+        const clampedLeftW = Math.max(220, Math.min(totalW - 220, totalW * subRatio));
+        codePane.style.width = clampedLeftW + "px";
+        codePane.style.height = "";
+        codePane.style.flex = "0 0 auto";
+        outputPane.style.width = "";
+        outputPane.style.height = "";
+        outputPane.style.flex = "1 1 0";
+      } else {
+        splitGrid.style.flexDirection = "column";
+        codePane.style.width = "";
+        codePane.style.height = "";
+        codePane.style.flex = "";
+        outputPane.style.width = "";
+        outputPane.style.height = "";
+        outputPane.style.flex = "";
+      }
+    }
+
+    function openPdfPicker() {
+      pdfPickerInput.value = "";
+      pdfPickerInput.click();
+    }
+
+    function closeSidePdf() {
+      pdfDockPane.classList.add("hidden-pane");
+      pdfResizer.classList.add("hidden-pane");
+      workspaceBody.classList.remove("pdf-active");
+      document.body.classList.remove("pdf-compact-top");
+      pdfViewerFrame.src = "about:blank";
+      pdfFileNameLabel.textContent = "No PDF loaded";
+      if (currentPdfBlobUrl) {
+        URL.revokeObjectURL(currentPdfBlobUrl);
+        currentPdfBlobUrl = null;
+      }
+      applyPaneSizes();
+    }
+
+    openPdfBtn.addEventListener("click", openPdfPicker);
+    changePdfBtn.addEventListener("click", openPdfPicker);
+    closePdfBtn.addEventListener("click", closeSidePdf);
+
+    pdfPickerInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      if (currentPdfBlobUrl) {
+        URL.revokeObjectURL(currentPdfBlobUrl);
+      }
+      currentPdfBlobUrl = URL.createObjectURL(file);
+      pdfViewerFrame.src = currentPdfBlobUrl;
+      pdfFileNameLabel.textContent = file.name;
+
+      pdfDockPane.classList.remove("hidden-pane");
+      pdfResizer.classList.remove("hidden-pane");
+      workspaceBody.classList.add("pdf-active");
+      document.body.classList.add("pdf-compact-top");
+      applyPaneSizes();
+    });
+
+    // Dragging PDF Splitter (Horizontal)
+    let dragMode = null;
+    let dragOverlay = null;
+
+    function createDragShield(cursorStyle) {
+      const shield = document.createElement("div");
+      shield.className = "drag-shield";
+      shield.style.cursor = cursorStyle;
+      document.body.appendChild(shield);
+      return shield;
+    }
+
+    pdfResizer.addEventListener("mousedown", (e) => {
+      if (!workspaceBody.classList.contains("pdf-active")) return;
+      e.preventDefault();
+      dragMode = "pdf";
+      pdfResizer.classList.add("dragging");
+      dragOverlay = createDragShield("col-resize");
+    });
+
+    paneResizer.addEventListener("mousedown", (e) => {
+      if (window.innerWidth <= 900) return;
+      e.preventDefault();
+      dragMode = workspaceBody.classList.contains("pdf-active") ? "sub-y" : "sub-x";
+      paneResizer.classList.add("dragging");
+      dragOverlay = createDragShield(dragMode === "sub-y" ? "row-resize" : "col-resize");
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!dragMode) return;
+
+      if (dragMode === "pdf") {
+        const rect = workspaceBody.getBoundingClientRect();
+        const rawW = e.clientX - rect.left;
+        const clampedW = Math.max(240, Math.min(rect.width - 260, rawW));
+        pdfRatio = clampedW / Math.max(1, rect.width);
+        applyPaneSizes();
+      } else if (dragMode === "sub-y") {
+        const rect = splitGrid.getBoundingClientRect();
+        const rawH = e.clientY - rect.top;
+        const clampedH = Math.max(130, Math.min(rect.height - 130, rawH));
+        subRatio = clampedH / Math.max(1, rect.height);
+        applyPaneSizes();
+      } else if (dragMode === "sub-x") {
+        const rect = splitGrid.getBoundingClientRect();
+        const rawW = e.clientX - rect.left;
+        const clampedW = Math.max(220, Math.min(rect.width - 220, rawW));
+        subRatio = clampedW / Math.max(1, rect.width);
+        applyPaneSizes();
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (!dragMode) return;
+      dragMode = null;
+      pdfResizer.classList.remove("dragging");
+      paneResizer.classList.remove("dragging");
+      if (dragOverlay) {
+        dragOverlay.remove();
+        dragOverlay = null;
+      }
+    });
+
+    window.addEventListener("resize", applyPaneSizes);
 
     // Elements
     const cCodeInput = document.getElementById("cCodeInput");
@@ -428,11 +735,13 @@
     const filePickerInput = document.getElementById("filePickerInput");
 
     const runCBtn = document.getElementById("runCBtn");
+    const runBatchBtn = document.getElementById("runBatchBtn");
     const clearRunnerBtn = document.getElementById("clearRunnerBtn");
     const outputSurface = document.getElementById("outputSurface");
     const cOutputText = document.getElementById("cOutputText");
     const inlineInputBar = document.getElementById("inlineInputBar");
     const inlineStdinInput = document.getElementById("inlineStdinInput");
+    const customTestInput = document.getElementById("customTestInput");
 
     const autocompletePopup = document.getElementById("autocompletePopup");
 
@@ -456,7 +765,38 @@
     const tabsList = document.getElementById("tabsList");
     const addTabBtn = document.getElementById("addTabBtn");
 
-    // Preserve native Ctrl+Z undo history whenever modifying editor text programmatically
+    let editorFontSize = parseInt(localStorage.getItem("akshay_ide_font_px") || "15", 10);
+    if (isNaN(editorFontSize) || editorFontSize < 12 || editorFontSize > 24) editorFontSize = 15;
+
+    function applyEditorFontSize(px) {
+      editorFontSize = Math.max(12, Math.min(24, px));
+      document.documentElement.style.setProperty("--editor-font-size", editorFontSize + "px");
+      lineNumbersEl.style.fontSize = editorFontSize + "px";
+      localStorage.setItem("akshay_ide_font_px", String(editorFontSize));
+      zoomResetBtn.textContent = Math.round((editorFontSize / 15) * 100) + "%";
+      syncEditorVisuals(false);
+    }
+
+    zoomInBtn.addEventListener("click", () => applyEditorFontSize(editorFontSize + 1));
+    zoomOutBtn.addEventListener("click", () => applyEditorFontSize(editorFontSize - 1));
+    zoomResetBtn.addEventListener("click", () => applyEditorFontSize(15));
+
+    const TEST_PRESETS = {
+      sample1: "5\n10 20 30 40 50\n",
+      sample2: "3\n7 -2 14\n",
+      edge: "1\n0\n",
+    };
+
+    document.querySelectorAll(".preset-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const key = chip.getAttribute("data-preset");
+        if (TEST_PRESETS[key] !== undefined) {
+          customTestInput.value = TEST_PRESETS[key];
+          customTestInput.focus();
+        }
+      });
+    });
+
     function replaceEditorRange(start, end, text, cursorPos = null) {
       cCodeInput.focus();
       cCodeInput.setSelectionRange(start, end);
@@ -519,24 +859,28 @@ int main() {
       forloop: `for (int i = 0; i < n; i++) {\n    \n}`,
       whileloop: `while (cond) {\n    \n}`,
       switchcase: `switch (choice) {\n    case 1:\n        break;\n    default:\n        break;\n}`,
-      arrayinput: `int n;\nscanf("%d", &n);\nint arr[100];\nfor (int i = 0; i < n; i++) {\n    scanf("%d", &arr[i]);\n}`,
-      structdef: `struct Student {\n    int roll;\n    char name[50];\n};`,
+      arrayinput: `int n;\nscanf("%d", &n);\nint arr[100];\nfor (int i = 0; i < n; i++) {\n    scanf("%d", &arr[i]);\n}\n`,
+      structdef: `struct Student {\n    int roll;\n    char name[50];\n};\n`,
       cppmain: `#include <iostream>\nusing namespace std;\n\nint main() {\n    \n    return 0;\n}`,
-      cppvector: `int n;\ncin >> n;\nvector<int> arr(n);\nfor (int i = 0; i < n; i++) {\n    cin >> arr[i];\n}`,
-      cppclass: `class Solution {\npublic:\n    void solve() {\n        \n    }\n};`
+      cppfastio: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n\n    \n    return 0;\n}`,
+      cppvector: `int n;\ncin >> n;\nvector<int> arr(n);\nfor (int i = 0; i < n; i++) {\n    cin >> arr[i];\n}\n`,
+      cppclass: `class Solution {\npublic:\n    void solve() {\n        \n    }\n};`,
+      dsabinary: `int binarySearch(const vector<int>& a, int target) {\n    int lo = 0, hi = (int)a.size() - 1;\n    while (lo <= hi) {\n        int mid = lo + (hi - lo) / 2;\n        if (a[mid] == target) return mid;\n        if (a[mid] < target) lo = mid + 1;\n        else hi = mid - 1;\n    }\n    return -1;\n}`,
+      dsaprefix: `vector<long long> pref(n + 1, 0);\nfor (int i = 0; i < n; i++) {\n    pref[i + 1] = pref[i] + a[i];\n}\n// Range sum [l, r] (0-indexed): pref[r + 1] - pref[l]`,
+      dsatree: `void dfs(int u, int parent, const vector<vector<int>>& adj) {\n    for (int v : adj[u]) {\n        if (v != parent) {\n            dfs(v, u, adj);\n        }\n    }\n}`,
     };
 
     const C_STANDARDS = [
       { value: "-std=c17", label: "C17" },
       { value: "-std=c11", label: "C11" },
-      { value: "-std=c99", label: "C99" }
+      { value: "-std=c99", label: "C99" },
     ];
 
     const CPP_STANDARDS = [
       { value: "-std=c++17", label: "C++17" },
       { value: "-std=c++20", label: "C++20" },
       { value: "-std=c++14", label: "C++14" },
-      { value: "-std=c++11", label: "C++11" }
+      { value: "-std=c++11", label: "C++11" },
     ];
 
     function detectLangFromFilename(name) {
@@ -593,7 +937,7 @@ int main() {
         if (Array.isArray(saved) && saved.length > 0) {
           tabs = saved.map((t) => ({
             ...t,
-            lang: t.lang || detectLangFromFilename(t.name)
+            lang: t.lang || detectLangFromFilename(t.name),
           }));
           activeTabId = localStorage.getItem("akshay_c_active_tab_v1") || tabs[0].id;
           if (!tabs.some((t) => t.id === activeTabId)) activeTabId = tabs[0].id;
@@ -603,7 +947,7 @@ int main() {
 
       tabs = [
         { id: "tab_1", name: "main.c", lang: "c", code: DEFAULT_CODE },
-        { id: "tab_2", name: "main.cpp", lang: "cpp", code: DEFAULT_CPP_CODE }
+        { id: "tab_2", name: "main.cpp", lang: "cpp", code: DEFAULT_CPP_CODE },
       ];
       activeTabId = "tab_1";
     }
@@ -709,7 +1053,7 @@ int main() {
         lang: isCpp ? "cpp" : "c",
         code: isCpp
           ? `#include <iostream>\nusing namespace std;\n\nint main() {\n    \n    return 0;\n}`
-          : `#include <stdio.h>\n\nint main() {\n    \n    return 0;\n}`
+          : `#include <stdio.h>\n\nint main() {\n    \n    return 0;\n}`,
       };
       tabs.push(newTab);
       activeTabId = newTab.id;
@@ -721,7 +1065,6 @@ int main() {
       focusCodeEditor();
     });
 
-    // Open & Save .c / .cpp File on Disk
     openFileBtn.addEventListener("click", () => {
       filePickerInput.value = "";
       filePickerInput.click();
@@ -737,7 +1080,7 @@ int main() {
         id: "tab_" + Date.now(),
         name: file.name,
         lang: detectedLang,
-        code: content
+        code: content,
       };
       tabs.push(newTab);
       activeTabId = newTab.id;
@@ -767,7 +1110,6 @@ int main() {
       execMetaLabel.textContent = `Exported ${filename}`;
     });
 
-    // Syntax Highlighting (C + C++) + Matching Bracket + Error Line Highlighting
     const C_CPP_KW_SET = new Set([
       "auto","break","case","char","const","continue","default","do","double",
       "else","enum","extern","float","for","goto","if","inline","int","long",
@@ -799,7 +1141,7 @@ int main() {
 
     function highlightStringLiteral(strToken) {
       const innerRegex =
-        /(%[\+\-#0 ]*\d*(?:\.\d+)?(?:hh|h|ll|l|j|z|t|L)?[diuoxXfFeEgGaAcsSpn%])|\\(?:[abefnrtv\\'"?]|x[0-9a-fA-F]+|[0-7]{1,3})/g;
+        /(%[\+\-#0 ]*\d*(?:\.\d+)?(?:hh|h|ll|l|j|z|t|L)?[diuoxXfFeEgGaAcsSpn%])|(\\(?::[abefnrtv\\'"?]|x[0-9a-fA-F]+|[0-7]{1,3}))/g;
 
       let result = "";
       let last = 0;
@@ -818,6 +1160,7 @@ int main() {
       if (last < strToken.length) {
         result += `<span class="tok-string">${escapeHtml(strToken.slice(last))}</span>`;
       }
+
       return result;
     }
 
@@ -859,7 +1202,7 @@ int main() {
       const matchedSet = new Set(bracketPair || []);
 
       const tokenRegex =
-        /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|^\s*#\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(?:<[^>]*>|"(?:[^"\\]|\\.)*")?|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?)(?:[fFlLuU]*)\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b|&(?!&)|[\{\}\(\)\[\]])/gm;
+        /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|^\s*#\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(?:<[^>]*>|"(?:[^"\\]|\\.)*")?|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?)(?:[fFlLuU]*)\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b|&(?!=&)|[\{\}\(\)\[\]])/gm;
 
       let out = "";
       let lastIndex = 0;
@@ -945,6 +1288,25 @@ int main() {
       renderLineBackdrop(lineCount, ln);
     }
 
+    function jumpToLine(lineNum) {
+      if (!lineNum || lineNum < 1) return;
+      const lines = cCodeInput.value.split("\n");
+      const targetLine = Math.min(lines.length, Math.max(1, lineNum));
+      let charPos = 0;
+      for (let i = 0; i < targetLine - 1; i++) {
+        charPos += lines[i].length + 1;
+      }
+      cCodeInput.focus();
+      cCodeInput.setSelectionRange(charPos, charPos);
+      const lineH = editorFontSize * 1.5;
+      cCodeInput.scrollTop = Math.max(0, (targetLine - 3) * lineH);
+      syncEditorVisuals(false);
+    }
+
+    errorLineBadge.addEventListener("click", () => {
+      if (errorLineNumber) jumpToLine(errorLineNumber);
+    });
+
     function clearErrorMarker() {
       errorLineNumber = null;
       errorLineKind = null;
@@ -957,11 +1319,12 @@ int main() {
         clearErrorMarker();
         return;
       }
+
       const errMatch = outputText.match(/^(?:.*?:)?program\.(?:c|cpp):(\d+):\d+:\s*(?:fatal error|error):/im);
       if (errMatch) {
         errorLineNumber = parseInt(errMatch[1], 10);
         errorLineKind = "error";
-        errorLineBadge.textContent = `Error at Ln ${errorLineNumber}`;
+        errorLineBadge.textContent = `Error at Ln ${errorLineNumber} (Jump)`;
         errorLineBadge.className = "error-badge badge-error";
         return;
       }
@@ -970,7 +1333,7 @@ int main() {
       if (warnMatch) {
         errorLineNumber = parseInt(warnMatch[1], 10);
         errorLineKind = "warning";
-        errorLineBadge.textContent = `Warning at Ln ${errorLineNumber}`;
+        errorLineBadge.textContent = `Warning at Ln ${errorLineNumber} (Jump)`;
         errorLineBadge.className = "error-badge badge-warning";
         return;
       }
@@ -1007,7 +1370,6 @@ int main() {
       syncEditorVisuals(false);
     });
 
-    // Format Code
     function formatCCode(raw) {
       const lines = raw.split("\n");
       let indent = 0;
@@ -1019,9 +1381,11 @@ int main() {
           formatted.push("");
           continue;
         }
+
         if (trimmed.startsWith("}")) {
           indent = Math.max(0, indent - 1);
         }
+
         const isAccessSpec = /^(public|private|protected)\s*:/.test(trimmed);
         const currentIndent = isAccessSpec ? Math.max(0, indent - 1) : indent;
         formatted.push("    ".repeat(currentIndent) + trimmed);
@@ -1030,6 +1394,7 @@ int main() {
         const closeBraces = (trimmed.match(/\}/g) || []).length;
         indent = Math.max(0, indent + openBraces - closeBraces);
       }
+
       return formatted.join("\n");
     }
 
@@ -1042,8 +1407,8 @@ int main() {
     snippetSelect.addEventListener("change", () => {
       const key = snippetSelect.value;
       if (!key || !SNIPPETS[key]) return;
-      if (key.startsWith("cpp") && langSelect.value !== "cpp") {
-        applyLanguageUI("cpp");
+      if (key.startsWith("cpp") || key.startsWith("dsa")) {
+        if (langSelect.value !== "cpp") applyLanguageUI("cpp");
       }
       const start = cCodeInput.selectionStart;
       const end = cCodeInput.selectionEnd;
@@ -1054,7 +1419,6 @@ int main() {
       focusCodeEditor();
     });
 
-    // Find & Replace
     function openFindBar(focusReplace = false) {
       findReplaceBar.classList.remove("hidden-bar");
       updateFindMatchCount();
@@ -1111,6 +1475,7 @@ int main() {
         closeFindBar();
       }
     });
+
     findNextBtn.addEventListener("click", findNextMatch);
 
     replaceOneBtn.addEventListener("click", () => {
@@ -1139,7 +1504,6 @@ int main() {
       focusCodeEditor();
     });
 
-    // Autocomplete Suggestions (C + C++)
     const C_CPP_KEYWORDS = [
       { label: "int", insertText: "int ", kind: "keyword" },
       { label: "float", insertText: "float ", kind: "keyword" },
@@ -1154,8 +1518,8 @@ int main() {
       { label: "auto", insertText: "auto ", kind: "keyword" },
       { label: "struct", insertText: "struct ", kind: "keyword" },
       { label: "class", insertText: "class ", kind: "keyword" },
-      { label: "public", insertText: "public:\n    ", kind: "keyword" },
-      { label: "private", insertText: "private:\n    ", kind: "keyword" },
+      { label: "public:", insertText: "public:\n    ", kind: "keyword" },
+      { label: "private:", insertText: "private:\n    ", kind: "keyword" },
       { label: "namespace", insertText: "namespace ", kind: "keyword" },
       { label: "using namespace std;", insertText: "using namespace std;", kind: "snippet" },
       { label: "template", insertText: "template <typename T>", kind: "keyword" },
@@ -1166,7 +1530,7 @@ int main() {
       { label: "else if", insertText: "else if ()", kind: "keyword", cursorOffset: -1 },
       { label: "for", insertText: "for ()", kind: "keyword", cursorOffset: -1 },
       { label: "while", insertText: "while ()", kind: "keyword", cursorOffset: -1 },
-      { label: "do", insertText: "do {\n    \n} while ();", kind: "keyword", cursorOffset: -1 },
+      { label: "do", insertText: "do {\n    \n} while ();", kind: "keyword", cursorOffset: -2 },
       { label: "switch", insertText: "switch ()", kind: "keyword", cursorOffset: -1 },
       { label: "case", insertText: "case :", kind: "keyword", cursorOffset: -1 },
       { label: "default", insertText: "default:", kind: "keyword" },
@@ -1204,7 +1568,7 @@ int main() {
       { label: "#include <stdio.h>", insertText: "#include <stdio.h>", kind: "snippet" },
       { label: "#include <stdlib.h>", insertText: "#include <stdlib.h>", kind: "snippet" },
       { label: "#include <string.h>", insertText: "#include <string.h>", kind: "snippet" },
-      { label: "#include <math.h>", insertText: "#include <math.h>", kind: "snippet" }
+      { label: "#include <math.h>", insertText: "#include <math.h>", kind: "snippet" },
     ];
 
     let currentSuggestions = [];
@@ -1245,7 +1609,7 @@ int main() {
         " ".repeat(Math.max(0, currentTokenEnd - currentTokenStart)) +
         code.slice(currentTokenEnd);
 
-      const withoutStrings = cleaned.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, " ");
+      const withoutStrings = cleaned.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, " ");
       const withoutComments = withoutStrings
         .replace(/\/\/.*$/gm, " ")
         .replace(/\/\*[\s\S]*?\*\//g, " ");
@@ -1267,6 +1631,7 @@ int main() {
           userItems.push({ label: id, insertText: id, kind: "var" });
         }
       }
+
       return userItems;
     }
 
@@ -1351,8 +1716,7 @@ int main() {
       saveTabs();
     }
 
-    // Editor Shortcuts
-    const PAIRS = { "{": "}", "(": ")", "[": "]", "'": "'", '"': '"' };
+    const PAIRS = { "{": "}", "(": ")", "[": "]", '"': '"', "'": "'" };
 
     cCodeInput.addEventListener("input", () => {
       syncEditorVisuals(true);
@@ -1366,7 +1730,6 @@ int main() {
     });
 
     cCodeInput.addEventListener("keydown", (e) => {
-      // Side arrow keys immediately dismiss open suggestion popup without accepting
       if (isPopupOpen() && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
         hideAutocomplete();
         requestAnimationFrame(updateLineNumbersAndCursor);
@@ -1399,7 +1762,6 @@ int main() {
         }
       }
 
-      // Navigation keys never reopen suggestions
       if (
         e.key === "ArrowLeft" ||
         e.key === "ArrowRight" ||
@@ -1418,7 +1780,6 @@ int main() {
       const end = cCodeInput.selectionEnd;
       const val = cCodeInput.value;
 
-      // Ctrl + Shift + K : Delete Current Line
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
         const lineStart = val.lastIndexOf("\n", start - 1) + 1;
@@ -1433,7 +1794,6 @@ int main() {
         return;
       }
 
-      // Ctrl + / : Toggle Line Comment
       if ((e.ctrlKey || e.metaKey) && e.key === "/") {
         e.preventDefault();
         const lineStart = val.lastIndexOf("\n", start - 1) + 1;
@@ -1453,7 +1813,6 @@ int main() {
         return;
       }
 
-      // Ctrl + D : Duplicate Current Line
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
         e.preventDefault();
         const lineStart = val.lastIndexOf("\n", start - 1) + 1;
@@ -1466,7 +1825,6 @@ int main() {
         return;
       }
 
-      // Alt + ArrowUp / ArrowDown : Move Current Line
       if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
         e.preventDefault();
         const lines = val.split("\n");
@@ -1482,7 +1840,6 @@ int main() {
         return;
       }
 
-      // Tab : Insert 4 spaces
       if (e.key === "Tab") {
         e.preventDefault();
         replaceEditorRange(start, end, "    ", start + 4);
@@ -1490,7 +1847,6 @@ int main() {
         return;
       }
 
-      // Smart Enter with Auto-Indent & Brace Expansion
       if (e.key === "Enter") {
         e.preventDefault();
         const lineStart = val.lastIndexOf("\n", start - 1) + 1;
@@ -1513,11 +1869,10 @@ int main() {
         return;
       }
 
-      // Auto-Closing Brackets & Quotes
       if (PAIRS[e.key] && start === end) {
         const closeChar = PAIRS[e.key];
         const nextChar = val[start];
-        if ((e.key === "'" || e.key === '"') && nextChar === e.key) {
+        if ((e.key === '"' || e.key === "'") && nextChar === e.key) {
           e.preventDefault();
           cCodeInput.setSelectionRange(start + 1, start + 1);
           updateLineNumbersAndCursor();
@@ -1530,11 +1885,10 @@ int main() {
       }
     });
 
-    // Global Shortcuts: F9 (Run), Ctrl+S (Save), Ctrl+F (Find), Ctrl+H (Replace)
     document.addEventListener("keydown", (e) => {
       if (e.key === "F9") {
         e.preventDefault();
-        triggerRunFlow();
+        triggerRunFlow(false);
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
         saveTabs(true);
@@ -1544,10 +1898,18 @@ int main() {
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "h") {
         e.preventDefault();
         openFindBar(true);
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === "=" || e.key === "+")) {
+        e.preventDefault();
+        applyEditorFontSize(editorFontSize + 1);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "-") {
+        e.preventDefault();
+        applyEditorFontSize(editorFontSize - 1);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+        e.preventDefault();
+        applyEditorFontSize(15);
       }
     });
 
-    // Runner & Inline scanf/cin Flow (inside output box)
     let activeSessionId = null;
     let pollTimer = null;
     let activeInlineInput = null;
@@ -1556,7 +1918,7 @@ int main() {
     async function parseJsonSafe(res) {
       const txt = await res.text();
       if (!txt || !txt.trim()) {
-        throw new Error("Server returned empty response (restart start.bat)");
+        throw new Error("Server returned empty response");
       }
       return JSON.parse(txt);
     }
@@ -1659,7 +2021,7 @@ int main() {
           await fetch("/stop", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ session_id: sid })
+            body: JSON.stringify({ session_id: sid }),
           });
         } catch (_) {}
         if (!silent) {
@@ -1673,9 +2035,14 @@ int main() {
       hideInputBar();
       activeSessionId = null;
       runCBtn.disabled = false;
+      runBatchBtn.disabled = false;
       runCBtn.textContent = "\u25B6 Run (F9)";
       const elapsed = Math.round(performance.now() - runStartTime);
-      execMetaLabel.textContent = `Done \u2022 ${elapsed} ms`;
+      const codeInfo =
+        exitCode !== null && exitCode !== undefined && exitCode !== 0
+          ? ` \u2022 Exit ${exitCode}`
+          : " \u2022 Exit 0";
+      execMetaLabel.textContent = `Done \u2022 ${elapsed} ms${codeInfo}`;
       if (exitCode !== null && exitCode !== undefined && exitCode !== 0) {
         appendToOutputBox(`\n[Process exited with code ${exitCode}]`);
       }
@@ -1692,8 +2059,8 @@ int main() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             session_id: activeSessionId,
-            input: line
-          })
+            input: line,
+          }),
         });
         const data = await parseJsonSafe(res);
         if (data.output) {
@@ -1733,7 +2100,7 @@ int main() {
           const res = await fetch("/poll", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ session_id: activeSessionId })
+            body: JSON.stringify({ session_id: activeSessionId }),
           });
           const data = await parseJsonSafe(res);
           if (data.output) {
@@ -1757,17 +2124,54 @@ int main() {
       }, 150);
     }
 
-    async function triggerRunFlow() {
-      if (runCBtn.disabled) return;
+    async function triggerRunFlow(useBatchInput = false) {
+      if (runCBtn.disabled || runBatchBtn.disabled) return;
       await closeActiveSessionOnServer(true);
       saveTabs();
       clearErrorMarker();
       hideAutocomplete();
       cOutputText.innerHTML = "";
       runCBtn.disabled = true;
+      runBatchBtn.disabled = true;
       runCBtn.textContent = "Compiling...";
       execMetaLabel.textContent = "Compiling...";
       runStartTime = performance.now();
+
+      if (useBatchInput) {
+        try {
+          const res = await fetch("/run", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: cCodeInput.value,
+              input: customTestInput.value,
+              lang: langSelect.value,
+              flags: getSelectedFlags(),
+            }),
+          });
+          const data = await parseJsonSafe(res);
+          const elapsed = Math.round(performance.now() - runStartTime);
+          if (!data.compile_ok) {
+            cOutputText.textContent = data.output || "Compilation failed.";
+            detectCompilerLineFromOutput(data.output || "");
+            execMetaLabel.textContent = `Compile Error \u2022 ${elapsed} ms`;
+          } else {
+            cOutputText.textContent = data.output || "(No output)";
+            detectCompilerLineFromOutput(data.output || "");
+            const codeVal = data.exit_code !== undefined ? data.exit_code : 0;
+            execMetaLabel.textContent = `Batch Done \u2022 ${elapsed} ms \u2022 Exit ${codeVal}`;
+          }
+        } catch (err) {
+          cOutputText.textContent = "Connection Error: " + err.message;
+          execMetaLabel.textContent = "Error";
+        } finally {
+          runCBtn.disabled = false;
+          runBatchBtn.disabled = false;
+          runCBtn.textContent = "\u25B6 Run (F9)";
+          focusCodeEditor();
+        }
+        return;
+      }
 
       try {
         const res = await fetch("/start", {
@@ -1776,9 +2180,10 @@ int main() {
           body: JSON.stringify({
             code: cCodeInput.value,
             lang: langSelect.value,
-            flags: getSelectedFlags()
-          })
+            flags: getSelectedFlags(),
+          }),
         });
+
         const data = await parseJsonSafe(res);
 
         if (!data.compile_ok) {
@@ -1787,6 +2192,7 @@ int main() {
           detectCompilerLineFromOutput(data.output || "");
           execMetaLabel.textContent = `Compile Error \u2022 ${elapsed} ms`;
           runCBtn.disabled = false;
+          runBatchBtn.disabled = false;
           runCBtn.textContent = "\u25B6 Run (F9)";
           focusCodeEditor();
           return;
@@ -1794,6 +2200,7 @@ int main() {
 
         activeSessionId = data.session_id;
         runCBtn.disabled = false;
+        runBatchBtn.disabled = false;
         runCBtn.textContent = "\u25B6 Run (F9)";
 
         if (data.output) {
@@ -1812,12 +2219,14 @@ int main() {
           "Connection Error: Kya server chal raha hai? (" + err.message + ")";
         execMetaLabel.textContent = "Error";
         runCBtn.disabled = false;
+        runBatchBtn.disabled = false;
         runCBtn.textContent = "\u25B6 Run (F9)";
         focusCodeEditor();
       }
     }
 
-    runCBtn.addEventListener("click", triggerRunFlow);
+    runCBtn.addEventListener("click", () => triggerRunFlow(false));
+    runBatchBtn.addEventListener("click", () => triggerRunFlow(true));
 
     clearRunnerBtn.addEventListener("click", async () => {
       await closeActiveSessionOnServer(true);
@@ -1827,6 +2236,7 @@ int main() {
       clearErrorMarker();
       execMetaLabel.textContent = "Cleared";
       runCBtn.disabled = false;
+      runBatchBtn.disabled = false;
       runCBtn.textContent = "\u25B6 Run (F9)";
       hideAutocomplete();
       syncEditorVisuals(false);
@@ -1844,13 +2254,14 @@ int main() {
       }, 900);
     });
 
-    // Init
+    applyEditorFontSize(editorFontSize);
     loadTabs();
     renderTabs();
     const initialTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
     cCodeInput.value = initialTab ? initialTab.code : DEFAULT_CODE;
-    applyLanguageUI(initialTab ? initialTab.lang || detectLangFromFilename(initialTab.name) : "c");
+    applyLanguageUI(initialTab ? (initialTab.lang || detectLangFromFilename(initialTab.name)) : "c");
     syncEditorVisuals(false);
+    applyPaneSizes();
   </script>
 </body>
 </html>

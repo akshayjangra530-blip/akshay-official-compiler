@@ -109,16 +109,16 @@ def inject_unbuffered_io(code, is_cpp=False):
         header = (
             "#include <cstdio>\n"
             "__attribute__((constructor)) static void _ak_live_stdio(void) {\n"
-            "    std::setvbuf(stdout, nullptr, _IONBF, 0);\n"
-            "    std::setvbuf(stderr, nullptr, _IONBF, 0);\n"
+            "  std::setvbuf(stdout, nullptr, _IONBF, 0);\n"
+            "  std::setvbuf(stderr, nullptr, _IONBF, 0);\n"
             "}\n"
         )
     else:
         header = (
             "#include <stdio.h>\n"
             "__attribute__((constructor)) static void _ak_live_stdio(void) {\n"
-            "    setvbuf(stdout, NULL, _IONBF, 0);\n"
-            "    setvbuf(stderr, NULL, _IONBF, 0);\n"
+            "  setvbuf(stdout, NULL, _IONBF, 0);\n"
+            "  setvbuf(stderr, NULL, _IONBF, 0);\n"
             "}\n"
         )
     return header + code
@@ -139,8 +139,8 @@ def adjust_compiler_line_numbers(msg, src_file_path, display_name, offset=5):
                         break
                 if digits:
                     new_ln = max(1, int(digits) - offset)
-                    rest = str(new_ln) + rest[len(digits) :]
-                line = f"{display_name}:" + rest
+                    rest = str(new_ln) + rest[len(digits):]
+                    line = f"{display_name}:" + rest
         adjusted.append(line.replace(src_file_path, display_name))
     return "\n".join(adjusted)
 
@@ -148,6 +148,7 @@ def adjust_compiler_line_numbers(msg, src_file_path, display_name, offset=5):
 class CompilerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         clean_path = self.path.split("?", 1)[0]
+
         if clean_path == "/":
             file_path = os.path.join(BASE_DIR, "index.html")
             content_type = "text/html; charset=utf-8"
@@ -259,12 +260,10 @@ class CompilerHandler(BaseHTTPRequestHandler):
                     )
                 except FileNotFoundError:
                     remove_path_safe(tmpdir)
-                    self.send_json(
-                        {
-                            "compile_ok": False,
-                            "output": f"Error: {compiler_bin} not found in PATH. MinGW/GCC (with g++) install karo.",
-                        }
-                    )
+                    self.send_json({
+                        "compile_ok": False,
+                        "output": f"Error: {compiler_bin} not found in PATH. MinGW/GCC (with g++) install karo.",
+                    })
                     return
                 except subprocess.TimeoutExpired:
                     remove_path_safe(tmpdir)
@@ -290,15 +289,13 @@ class CompilerHandler(BaseHTTPRequestHandler):
                     with SESSIONS_LOCK:
                         SESSIONS.pop(sid, None)
 
-                self.send_json(
-                    {
-                        "compile_ok": True,
-                        "session_id": sid,
-                        "output": out,
-                        "done": done,
-                        "exit_code": exit_code,
-                    }
-                )
+                self.send_json({
+                    "compile_ok": True,
+                    "session_id": sid,
+                    "output": out,
+                    "done": done,
+                    "exit_code": exit_code,
+                })
                 return
 
             if self.path == "/input":
@@ -341,16 +338,15 @@ class CompilerHandler(BaseHTTPRequestHandler):
                 self.send_json({"stopped": True})
                 return
 
-            # Legacy /run fallback
             code = payload.get("code", "")
             stdin_data = payload.get("input", "")
             lang = str(payload.get("lang", "c")).lower()
             is_cpp = lang in ("cpp", "c++")
             compiler_bin = "g++" if is_cpp else "gcc"
             display_name = "program.cpp" if is_cpp else "program.c"
+
             check_only = bool(payload.get("check_only", False))
             raw_flags = payload.get("flags", [])
-
             safe_flags = [fl for fl in raw_flags if isinstance(fl, str) and fl in ALLOWED_FLAGS]
             has_lm = "-lm" in safe_flags
             compile_flags = [fl for fl in safe_flags if fl != "-lm"]
@@ -410,9 +406,13 @@ class CompilerHandler(BaseHTTPRequestHandler):
                         combined += "\n[stderr]\n" + run_res.stderr
                     if run_res.returncode != 0:
                         combined += f"\n[Process exited with code {run_res.returncode}]"
-                    self.send_json({"compile_ok": True, "output": combined})
+                    self.send_json({"compile_ok": True, "output": combined, "exit_code": run_res.returncode})
                 except subprocess.TimeoutExpired:
-                    self.send_json({"compile_ok": True, "output": "Execution timed out (possible infinite loop)."})
+                    self.send_json({
+                        "compile_ok": True,
+                        "output": "Execution timed out (Time Limit Exceeded — possible infinite loop).",
+                        "exit_code": -1,
+                    })
             finally:
                 remove_path_safe(tmpdir)
 
