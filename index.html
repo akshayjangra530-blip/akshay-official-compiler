@@ -275,6 +275,30 @@
             <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a></li>
           </ul>
         </section>
+
+        <section id="historySection" class="drawer-card">
+          <div class="drawer-card-head">
+            <h2>Recent Runs</h2>
+            <button id="clearHistoryBtn" class="btn secondary tiny-btn" type="button">Clear</button>
+          </div>
+          <div id="historyList" class="history-list">
+            <p class="history-empty">No runs yet.</p>
+          </div>
+        </section>
+
+        <section id="quickRefSection" class="drawer-card">
+          <h2>C / C++ Quick Ref</h2>
+          <div class="ref-mini">
+            <code>%d</code> int &nbsp; <code>%lld</code> long long &nbsp; <code>%lf</code> double<br />
+            <code>sort(v.begin(), v.end());</code><br />
+            <code>ios::sync_with_stdio(false); cin.tie(nullptr);</code>
+          </div>
+        </section>
+
+        <section id="sysInfoSection" class="drawer-card">
+          <h2>Compiler Environment</h2>
+          <div id="systemInfoBox" class="sys-info-box">Detecting compiler...</div>
+        </section>
       </div>
     </aside>
 
@@ -308,6 +332,14 @@
 
                 <label class="flag-check" title="Show compiler warnings (-Wall)">
                   <input type="checkbox" id="flagWall" checked /> -Wall
+                </label>
+
+                <label class="flag-check" title="Optimize code (-O2)">
+                  <input type="checkbox" id="flagO2" /> -O2
+                </label>
+
+                <label class="flag-check" title="Treat warnings as errors (-Werror)">
+                  <input type="checkbox" id="flagWerror" /> -Werror
                 </label>
 
                 <label class="flag-check" title="Link math library (-lm)">
@@ -350,8 +382,10 @@
 
             <div class="btn-group">
               <button id="zenModeBtn" class="btn secondary" type="button" title="Toggle Fullscreen Focus / Zen Mode">Zen Mode</button>
+              <button id="checkSyntaxBtn" class="btn secondary" type="button" title="Check compile errors without running (Ctrl+Shift+B)">Check</button>
               <button id="clearRunnerBtn" class="btn secondary" type="button">Clear</button>
-              <button id="runCBtn" class="btn" type="button" title="Run code (F9)">&#9654; Run (F9)</button>
+              <button id="stopRunBtn" class="btn hidden-el" type="button" title="Stop running program">&#9632; Stop</button>
+              <button id="runCBtn" class="btn" type="button" title="Run code (F9 or Ctrl+Enter)">&#9654; Run (F9)</button>
             </div>
           </div>
 
@@ -426,6 +460,7 @@
                   <span class="output-label">Output:</span>
                   <div class="output-meta-group">
                     <span id="execMetaLabel" class="meta-pill">Ready</span>
+                    <button id="sendEofBtn" class="btn secondary tiny-btn hidden-el" type="button" title="Send End-of-File (Ctrl+D) to stdin">EOF (^D)</button>
                     <button id="copyOutputBtn" class="btn secondary tiny-btn" type="button" title="Copy output">Copy</button>
                   </div>
                 </div>
@@ -447,7 +482,10 @@
 
                 <div class="testcase-panel">
                   <div class="testcase-toolbar">
-                    <span class="testcase-title">Custom Test Input (Batch)</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="testcase-title">Custom Test Input (Batch)</span>
+                      <span id="batchVerdictBadge" class="verdict-badge hidden-el"></span>
+                    </div>
                     <div class="testcase-presets">
                       <button type="button" class="preset-chip" data-preset="sample1">Sample 1</button>
                       <button type="button" class="preset-chip" data-preset="sample2">Sample 2</button>
@@ -455,12 +493,26 @@
                       <button id="runBatchBtn" type="button" class="btn secondary tiny-btn" title="Run with custom input below (non-interactive)">Run Test Input</button>
                     </div>
                   </div>
-                  <textarea
-                    id="customTestInput"
-                    class="testcase-textarea"
-                    rows="2"
-                    placeholder="Batch test input yahan likho (e.g., 5&#10;10 20 30 40 50) aur 'Run Test Input' dabao..."
-                  ></textarea>
+                  <div class="testcase-grid">
+                    <div class="testcase-col">
+                      <span class="testcase-sublabel">Stdin Input</span>
+                      <textarea
+                        id="customTestInput"
+                        class="testcase-textarea"
+                        rows="2"
+                        placeholder="Batch test input yahan likho (e.g., 5&#10;10 20 30 40 50)..."
+                      ></textarea>
+                    </div>
+                    <div class="testcase-col">
+                      <span class="testcase-sublabel">Expected Output (Optional)</span>
+                      <textarea
+                        id="expectedTestOutput"
+                        class="testcase-textarea"
+                        rows="2"
+                        placeholder="Expected output likho PASS / FAIL verify karne ke liye..."
+                      ></textarea>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -468,7 +520,8 @@
 
           <!-- Bottom Shortcut Cheat Strip -->
           <div class="shortcut-strip">
-            <span><b>F9</b> Run</span>
+            <span><b>F9 / Ctrl+&#8629;</b> Run</span>
+            <span><b>Ctrl+Shift+B</b> Check</span>
             <span><b>Ctrl+S</b> Save</span>
             <span><b>Tab/Enter</b> Suggestion</span>
             <span><b>Ctrl+/</b> Comment</span>
@@ -503,8 +556,16 @@
       localStorage.removeItem("personal_notes");
     });
 
+    function applyTheme(isLight) {
+      document.body.classList.toggle("light", isLight);
+      themeBtn.textContent = isLight ? "\uD83C\uDF19 Dark" : "\u2600 Light";
+      localStorage.setItem("akshay_ide_theme", isLight ? "light" : "dark");
+    }
+
+    applyTheme(localStorage.getItem("akshay_ide_theme") === "light");
+
     themeBtn.addEventListener("click", () => {
-      document.body.classList.toggle("light");
+      applyTheme(!document.body.classList.contains("light"));
     });
 
     async function setZenAndFullscreen(enable) {
@@ -735,6 +796,9 @@
     const filePickerInput = document.getElementById("filePickerInput");
 
     const runCBtn = document.getElementById("runCBtn");
+    const stopRunBtn = document.getElementById("stopRunBtn");
+    const checkSyntaxBtn = document.getElementById("checkSyntaxBtn");
+    const sendEofBtn = document.getElementById("sendEofBtn");
     const runBatchBtn = document.getElementById("runBatchBtn");
     const clearRunnerBtn = document.getElementById("clearRunnerBtn");
     const outputSurface = document.getElementById("outputSurface");
@@ -742,11 +806,18 @@
     const inlineInputBar = document.getElementById("inlineInputBar");
     const inlineStdinInput = document.getElementById("inlineStdinInput");
     const customTestInput = document.getElementById("customTestInput");
+    const expectedTestOutput = document.getElementById("expectedTestOutput");
+    const batchVerdictBadge = document.getElementById("batchVerdictBadge");
+    const historyListEl = document.getElementById("historyList");
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+    const systemInfoBox = document.getElementById("systemInfoBox");
 
     const autocompletePopup = document.getElementById("autocompletePopup");
 
     const langSelect = document.getElementById("langSelect");
     const flagWall = document.getElementById("flagWall");
+    const flagO2 = document.getElementById("flagO2");
+    const flagWerror = document.getElementById("flagWerror");
     const flagLm = document.getElementById("flagLm");
     const stdSelect = document.getElementById("stdSelect");
     const snippetSelect = document.getElementById("snippetSelect");
@@ -872,12 +943,14 @@ int main() {
 
     const C_STANDARDS = [
       { value: "-std=c17", label: "C17" },
+      { value: "-std=c23", label: "C23" },
       { value: "-std=c11", label: "C11" },
       { value: "-std=c99", label: "C99" },
     ];
 
     const CPP_STANDARDS = [
       { value: "-std=c++17", label: "C++17" },
+      { value: "-std=c++23", label: "C++23" },
       { value: "-std=c++20", label: "C++20" },
       { value: "-std=c++14", label: "C++14" },
       { value: "-std=c++11", label: "C++11" },
@@ -1164,21 +1237,29 @@ int main() {
       return result;
     }
 
+    function stripStringsAndCommentsKeepLength(code) {
+      return code.replace(
+        /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,
+        (m) => m.replace(/[^\n]/g, " ")
+      );
+    }
+
     function findMatchingBracketIndex(code, cursorPos) {
       const openMap = { "{": "}", "(": ")", "[": "]" };
       const closeMap = { "}": "{", ")": "(", "]": "[" };
+      const masked = stripStringsAndCommentsKeepLength(code);
 
       const candidates = [cursorPos, cursorPos - 1];
       for (const idx of candidates) {
-        if (idx < 0 || idx >= code.length) continue;
-        const ch = code[idx];
+        if (idx < 0 || idx >= masked.length) continue;
+        const ch = masked[idx];
 
         if (openMap[ch]) {
           const target = openMap[ch];
           let depth = 0;
-          for (let i = idx; i < code.length; i++) {
-            if (code[i] === ch) depth++;
-            else if (code[i] === target) {
+          for (let i = idx; i < masked.length; i++) {
+            if (masked[i] === ch) depth++;
+            else if (masked[i] === target) {
               depth--;
               if (depth === 0) return [idx, i];
             }
@@ -1187,8 +1268,8 @@ int main() {
           const target = closeMap[ch];
           let depth = 0;
           for (let i = idx; i >= 0; i--) {
-            if (code[i] === ch) depth++;
-            else if (code[i] === target) {
+            if (masked[i] === ch) depth++;
+            else if (masked[i] === target) {
               depth--;
               if (depth === 0) return [i, idx];
             }
@@ -1371,18 +1452,20 @@ int main() {
     });
 
     function formatCCode(raw) {
+      const maskedLines = stripStringsAndCommentsKeepLength(raw).split("\n");
       const lines = raw.split("\n");
       let indent = 0;
       const formatted = [];
 
-      for (let line of lines) {
-        const trimmed = line.trim();
+      for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        const maskedTrimmed = (maskedLines[i] || "").trim();
         if (!trimmed) {
           formatted.push("");
           continue;
         }
 
-        if (trimmed.startsWith("}")) {
+        if (maskedTrimmed.startsWith("}")) {
           indent = Math.max(0, indent - 1);
         }
 
@@ -1390,9 +1473,10 @@ int main() {
         const currentIndent = isAccessSpec ? Math.max(0, indent - 1) : indent;
         formatted.push("    ".repeat(currentIndent) + trimmed);
 
-        const openBraces = (trimmed.match(/\{/g) || []).length;
-        const closeBraces = (trimmed.match(/\}/g) || []).length;
-        indent = Math.max(0, indent + openBraces - closeBraces);
+        const openBraces = (maskedTrimmed.match(/\{/g) || []).length;
+        const closeBraces = (maskedTrimmed.match(/\}/g) || []).length;
+        const adjustedClose = maskedTrimmed.startsWith("}") ? Math.max(0, closeBraces - 1) : closeBraces;
+        indent = Math.max(0, indent + openBraces - adjustedClose);
       }
 
       return formatted.join("\n");
@@ -1886,12 +1970,16 @@ int main() {
     });
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "F9") {
+      if (e.key === "F9" || ((e.ctrlKey || e.metaKey) && e.key === "Enter")) {
         e.preventDefault();
         triggerRunFlow(false);
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        runCheckOnly();
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
         saveTabs(true);
+        showToast("Tab saved locally");
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
         e.preventDefault();
         openFindBar(false);
@@ -1914,6 +2002,145 @@ int main() {
     let pollTimer = null;
     let activeInlineInput = null;
     let runStartTime = 0;
+
+    function showToast(message, actionLabel = "", actionFn = null) {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+      const item = document.createElement("div");
+      item.className = "toast-item";
+
+      const span = document.createElement("span");
+      span.textContent = message;
+      item.appendChild(span);
+
+      if (actionLabel && typeof actionFn === "function") {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "toast-action-btn";
+        btn.textContent = actionLabel;
+        btn.addEventListener("click", () => {
+          actionFn();
+          item.remove();
+        });
+        item.appendChild(btn);
+      }
+
+      container.appendChild(item);
+      setTimeout(() => {
+        item.remove();
+      }, actionFn ? 5000 : 2200);
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes <= 0) return "";
+      if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function setExecStatus(text, statusKind = "") {
+      execMetaLabel.textContent = text;
+      execMetaLabel.className = "meta-pill" + (statusKind ? ` status-${statusKind}` : "");
+    }
+
+    let runHistory = [];
+    try {
+      const savedHist = JSON.parse(localStorage.getItem("akshay_c_history_v1") || "[]");
+      if (Array.isArray(savedHist)) runHistory = savedHist;
+    } catch (_) {}
+
+    function renderRunHistory() {
+      if (!historyListEl) return;
+      if (!runHistory.length) {
+        historyListEl.innerHTML = '<p class="history-empty">No runs yet.</p>';
+        return;
+      }
+      historyListEl.innerHTML = "";
+      runHistory.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "history-item";
+        card.title = "Click to restore this code";
+
+        const top = document.createElement("div");
+        top.className = "history-item-top";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = item.fileName || "main.c";
+        const statusSpan = document.createElement("span");
+        statusSpan.textContent = item.status;
+        statusSpan.style.color = item.ok ? "#4ade80" : "#f87171";
+        top.appendChild(nameSpan);
+        top.appendChild(statusSpan);
+
+        const meta = document.createElement("div");
+        meta.className = "history-item-meta";
+        meta.textContent = `${item.time}${item.meta ? " \u2022 " + item.meta : ""}`;
+
+        card.appendChild(top);
+        card.appendChild(meta);
+        card.addEventListener("click", () => {
+          setEditorFullText(item.code || "");
+          saveTabs();
+          showToast(`Restored ${item.fileName || "code"} from ${item.time}`);
+          focusCodeEditor();
+        });
+        historyListEl.appendChild(card);
+      });
+    }
+
+    function recordRunHistory(entry) {
+      const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      runHistory.unshift({ ...entry, time: timeStr });
+      if (runHistory.length > 10) runHistory.length = 10;
+      try {
+        localStorage.setItem("akshay_c_history_v1", JSON.stringify(runHistory));
+      } catch (_) {}
+      renderRunHistory();
+    }
+
+    if (clearHistoryBtn) {
+      clearHistoryBtn.addEventListener("click", () => {
+        runHistory = [];
+        localStorage.removeItem("akshay_c_history_v1");
+        renderRunHistory();
+      });
+    }
+
+    async function fetchSystemInfo() {
+      if (!systemInfoBox) return;
+      try {
+        const res = await fetch("/api/info");
+        const info = await res.json();
+        if (info.ok) {
+          systemInfoBox.innerHTML =
+            `<strong>Compiler:</strong> ${escapeHtml(info.compiler)}<br />` +
+            `<strong>Platform:</strong> ${escapeHtml(info.platform)}<br />` +
+            `<strong>Python:</strong> ${escapeHtml(info.python)}<br />` +
+            `<strong>Status:</strong> Local Ready`;
+        }
+      } catch (_) {
+        systemInfoBox.textContent = "Server offline";
+      }
+    }
+
+    function renderCompilerOutputWithJump(text) {
+      cOutputText.innerHTML = "";
+      const lines = (text || "").split("\n");
+      const diagRe = /^(?:.*?:)?(program\.(?:c|cpp)):(\d+):(?:\d+:)?\s*(fatal error|error|warning):/i;
+      lines.forEach((line, idx) => {
+        const m = line.match(diagRe);
+        if (m) {
+          const lnNum = parseInt(m[2], 10);
+          const isWarn = m[3].toLowerCase() === "warning";
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "diag-line-btn" + (isWarn ? " warn" : "");
+          btn.textContent = `Jump Ln ${lnNum}`;
+          btn.title = `Jump to line ${lnNum}`;
+          btn.addEventListener("click", () => jumpToLine(lnNum));
+          cOutputText.appendChild(btn);
+        }
+        cOutputText.appendChild(document.createTextNode(line + (idx < lines.length - 1 ? "\n" : "")));
+      });
+    }
 
     async function parseJsonSafe(res) {
       const txt = await res.text();
@@ -1947,6 +2174,11 @@ int main() {
       inlineStdinInput.value = "";
     }
 
+    function setInteractiveControlsVisible(active) {
+      stopRunBtn.classList.toggle("hidden-el", !active);
+      sendEofBtn.classList.toggle("hidden-el", !active);
+    }
+
     function appendToOutputBox(text, cls = "") {
       if (!text) return;
       const span = document.createElement("span");
@@ -1977,6 +2209,9 @@ int main() {
           activeInlineInput = null;
           appendToOutputBox(line + "\n", "out-typed-input");
           await sendInlineInputLine(line);
+        } else if (e.ctrlKey && e.key.toLowerCase() === "d") {
+          e.preventDefault();
+          await sendEofSignal();
         }
       });
 
@@ -2000,6 +2235,8 @@ int main() {
     function getSelectedFlags() {
       const flags = [stdSelect.value];
       if (flagWall.checked) flags.push("-Wall");
+      if (flagO2 && flagO2.checked) flags.push("-O2");
+      if (flagWerror && flagWerror.checked) flags.push("-Werror");
       if (flagLm.checked) flags.push("-lm");
       return flags;
     }
@@ -2014,6 +2251,7 @@ int main() {
     async function closeActiveSessionOnServer(silent = true) {
       stopSessionPolling();
       hideInputBar();
+      setInteractiveControlsVisible(false);
       if (activeSessionId) {
         const sid = activeSessionId;
         activeSessionId = null;
@@ -2026,33 +2264,72 @@ int main() {
         } catch (_) {}
         if (!silent) {
           appendToOutputBox("\n[Stopped]\n");
+          setExecStatus("Stopped", "error");
         }
       }
     }
 
-    function completeSession(exitCode) {
+    function completeSession(exitCode, durationMs = null, memoryBytes = 0, timedOut = false) {
       stopSessionPolling();
       hideInputBar();
+      setInteractiveControlsVisible(false);
       activeSessionId = null;
       runCBtn.disabled = false;
       runBatchBtn.disabled = false;
+      checkSyntaxBtn.disabled = false;
       runCBtn.textContent = "\u25B6 Run (F9)";
-      const elapsed = Math.round(performance.now() - runStartTime);
+      const elapsed = durationMs !== null && durationMs !== undefined
+        ? durationMs
+        : Math.round(performance.now() - runStartTime);
+      const mem = formatBytes(memoryBytes);
+      const memPart = mem ? ` \u2022 ${mem}` : "";
       const codeInfo =
         exitCode !== null && exitCode !== undefined && exitCode !== 0
           ? ` \u2022 Exit ${exitCode}`
           : " \u2022 Exit 0";
-      execMetaLabel.textContent = `Done \u2022 ${elapsed} ms${codeInfo}`;
-      if (exitCode !== null && exitCode !== undefined && exitCode !== 0) {
+      const ok = !timedOut && (exitCode === null || exitCode === undefined || exitCode === 0);
+      setExecStatus(
+        timedOut ? `Timed Out \u2022 ${elapsed} ms` : `Done \u2022 ${elapsed} ms${memPart}${codeInfo}`,
+        ok ? "success" : "error"
+      );
+      if (exitCode !== null && exitCode !== undefined && exitCode !== 0 && !timedOut) {
         appendToOutputBox(`\n[Process exited with code ${exitCode}]`);
       }
+      const tab = tabs.find((t) => t.id === activeTabId);
+      recordRunHistory({
+        fileName: tab ? tab.name : "main.c",
+        status: timedOut ? "Timeout" : `Exit ${exitCode ?? 0}`,
+        ok,
+        meta: `${elapsed} ms${memPart}`,
+        code: cCodeInput.value,
+      });
       outputSurface.scrollTop = outputSurface.scrollHeight;
       focusCodeEditor();
     }
 
+    async function sendEofSignal() {
+      if (!activeSessionId) return;
+      if (activeInlineInput) {
+        activeInlineInput.remove();
+        activeInlineInput = null;
+      }
+      appendToOutputBox("^D\n", "out-typed-input");
+      await sendInlineInputLine("\x04");
+    }
+
+    sendEofBtn.addEventListener("click", sendEofSignal);
+    stopRunBtn.addEventListener("click", async () => {
+      await closeActiveSessionOnServer(false);
+      runCBtn.disabled = false;
+      runBatchBtn.disabled = false;
+      checkSyntaxBtn.disabled = false;
+      runCBtn.textContent = "\u25B6 Run (F9)";
+      focusCodeEditor();
+    });
+
     async function sendInlineInputLine(line) {
       if (!activeSessionId) return;
-      execMetaLabel.textContent = "Running...";
+      setExecStatus("Running...", "running");
       try {
         const res = await fetch("/input", {
           method: "POST",
@@ -2078,9 +2355,9 @@ int main() {
           }
         }
         if (data.done) {
-          completeSession(data.exit_code);
+          completeSession(data.exit_code, data.duration_ms, data.memory_bytes, data.timed_out);
         } else {
-          execMetaLabel.textContent = "Waiting for input";
+          setExecStatus("Waiting for input", "running");
           showInputBar();
         }
       } catch (err) {
@@ -2116,7 +2393,7 @@ int main() {
             }
           }
           if (data.done) {
-            completeSession(data.exit_code);
+            completeSession(data.exit_code, data.duration_ms, data.memory_bytes, data.timed_out);
           }
         } catch (_) {
           stopSessionPolling();
@@ -2124,18 +2401,67 @@ int main() {
       }, 150);
     }
 
+    async function runCheckOnly() {
+      if (runCBtn.disabled || runBatchBtn.disabled || checkSyntaxBtn.disabled) return;
+      await closeActiveSessionOnServer(true);
+      saveTabs();
+      clearErrorMarker();
+      hideAutocomplete();
+      batchVerdictBadge.classList.add("hidden-el");
+      cOutputText.innerHTML = "";
+      checkSyntaxBtn.disabled = true;
+      setExecStatus("Checking syntax...", "running");
+      try {
+        const res = await fetch("/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: cCodeInput.value,
+            lang: langSelect.value,
+            flags: getSelectedFlags(),
+            check_only: true,
+          }),
+        });
+        const data = await parseJsonSafe(res);
+        const ms = data.compile_ms ?? 0;
+        if (!data.compile_ok) {
+          renderCompilerOutputWithJump(data.output || "Compilation failed.");
+          detectCompilerLineFromOutput(data.output || "");
+          setExecStatus(`Compile Error \u2022 ${ms} ms`, "error");
+        } else if (data.output && data.output.trim()) {
+          renderCompilerOutputWithJump(data.output);
+          detectCompilerLineFromOutput(data.output);
+          setExecStatus(`Warnings \u2022 ${ms} ms`, "running");
+        } else {
+          cOutputText.textContent = "Syntax check passed! Zero errors or warnings.";
+          setExecStatus(`Syntax OK \u2022 ${ms} ms`, "success");
+        }
+      } catch (err) {
+        cOutputText.textContent = "Connection Error: " + err.message;
+        setExecStatus("Error", "error");
+      } finally {
+        checkSyntaxBtn.disabled = false;
+        focusCodeEditor();
+      }
+    }
+
+    checkSyntaxBtn.addEventListener("click", runCheckOnly);
+
     async function triggerRunFlow(useBatchInput = false) {
       if (runCBtn.disabled || runBatchBtn.disabled) return;
       await closeActiveSessionOnServer(true);
       saveTabs();
       clearErrorMarker();
       hideAutocomplete();
+      batchVerdictBadge.classList.add("hidden-el");
       cOutputText.innerHTML = "";
       runCBtn.disabled = true;
       runBatchBtn.disabled = true;
+      checkSyntaxBtn.disabled = true;
       runCBtn.textContent = "Compiling...";
-      execMetaLabel.textContent = "Compiling...";
+      setExecStatus("Compiling...", "running");
       runStartTime = performance.now();
+      const tab = tabs.find((t) => t.id === activeTabId);
 
       if (useBatchInput) {
         try {
@@ -2150,23 +2476,57 @@ int main() {
             }),
           });
           const data = await parseJsonSafe(res);
-          const elapsed = Math.round(performance.now() - runStartTime);
+          const elapsed = data.duration_ms ?? Math.round(performance.now() - runStartTime);
           if (!data.compile_ok) {
-            cOutputText.textContent = data.output || "Compilation failed.";
+            renderCompilerOutputWithJump(data.output || "Compilation failed.");
             detectCompilerLineFromOutput(data.output || "");
-            execMetaLabel.textContent = `Compile Error \u2022 ${elapsed} ms`;
+            setExecStatus(`Compile Error \u2022 ${data.compile_ms ?? elapsed} ms`, "error");
+            recordRunHistory({
+              fileName: tab ? tab.name : "main.c",
+              status: "Compile Error",
+              ok: false,
+              meta: `${data.compile_ms ?? elapsed} ms`,
+              code: cCodeInput.value,
+            });
           } else {
-            cOutputText.textContent = data.output || "(No output)";
-            detectCompilerLineFromOutput(data.output || "");
+            const outTxt = data.output || "(No output)";
+            renderCompilerOutputWithJump(outTxt);
+            detectCompilerLineFromOutput(data.warnings || data.output || "");
             const codeVal = data.exit_code !== undefined ? data.exit_code : 0;
-            execMetaLabel.textContent = `Batch Done \u2022 ${elapsed} ms \u2022 Exit ${codeVal}`;
+            const mem = formatBytes(data.memory_bytes);
+            const memPart = mem ? ` \u2022 ${mem}` : "";
+            const ok = !data.timed_out && codeVal === 0;
+            setExecStatus(
+              data.timed_out ? `Batch Timed Out \u2022 ${elapsed} ms` : `Batch Done \u2022 ${elapsed} ms${memPart} \u2022 Exit ${codeVal}`,
+              ok ? "success" : "error"
+            );
+
+            // Check Expected Output if provided
+            const expectedRaw = expectedTestOutput ? expectedTestOutput.value : "";
+            if (expectedRaw.trim().length > 0 && !data.timed_out) {
+              const norm = (s) => s.replace(/\r\n/g, "\n").trimEnd();
+              const actualNorm = norm(data.stdout !== undefined ? data.stdout : (data.output || ""));
+              const expNorm = norm(expectedRaw);
+              const passed = actualNorm === expNorm;
+              batchVerdictBadge.textContent = passed ? "PASS" : "FAIL";
+              batchVerdictBadge.className = "verdict-badge " + (passed ? "verdict-pass" : "verdict-fail");
+            }
+
+            recordRunHistory({
+              fileName: tab ? tab.name : "main.c",
+              status: data.timed_out ? "Timeout" : `Batch Exit ${codeVal}`,
+              ok,
+              meta: `${elapsed} ms${memPart}`,
+              code: cCodeInput.value,
+            });
           }
         } catch (err) {
           cOutputText.textContent = "Connection Error: " + err.message;
-          execMetaLabel.textContent = "Error";
+          setExecStatus("Error", "error");
         } finally {
           runCBtn.disabled = false;
           runBatchBtn.disabled = false;
+          checkSyntaxBtn.disabled = false;
           runCBtn.textContent = "\u25B6 Run (F9)";
           focusCodeEditor();
         }
@@ -2187,12 +2547,20 @@ int main() {
         const data = await parseJsonSafe(res);
 
         if (!data.compile_ok) {
-          const elapsed = Math.round(performance.now() - runStartTime);
-          cOutputText.textContent = data.output || "Compilation failed.";
+          const elapsed = data.compile_ms ?? Math.round(performance.now() - runStartTime);
+          renderCompilerOutputWithJump(data.output || "Compilation failed.");
           detectCompilerLineFromOutput(data.output || "");
-          execMetaLabel.textContent = `Compile Error \u2022 ${elapsed} ms`;
+          setExecStatus(`Compile Error \u2022 ${elapsed} ms`, "error");
+          recordRunHistory({
+            fileName: tab ? tab.name : "main.c",
+            status: "Compile Error",
+            ok: false,
+            meta: `${elapsed} ms`,
+            code: cCodeInput.value,
+          });
           runCBtn.disabled = false;
           runBatchBtn.disabled = false;
+          checkSyntaxBtn.disabled = false;
           runCBtn.textContent = "\u25B6 Run (F9)";
           focusCodeEditor();
           return;
@@ -2201,25 +2569,31 @@ int main() {
         activeSessionId = data.session_id;
         runCBtn.disabled = false;
         runBatchBtn.disabled = false;
+        checkSyntaxBtn.disabled = false;
         runCBtn.textContent = "\u25B6 Run (F9)";
 
+        if (data.warnings && data.warnings.trim()) {
+          appendToOutputBox(data.warnings.trim() + "\n\n", "out-typed-input");
+        }
         if (data.output) {
           appendToOutputBox(data.output);
         }
 
         if (data.done) {
-          completeSession(data.exit_code);
+          completeSession(data.exit_code, data.duration_ms, data.memory_bytes, data.timed_out);
         } else {
-          execMetaLabel.textContent = "Waiting for input";
+          setInteractiveControlsVisible(true);
+          setExecStatus("Waiting for input", "running");
           showInputBar();
           startSessionPolling();
         }
       } catch (err) {
         cOutputText.textContent =
           "Connection Error: Kya server chal raha hai? (" + err.message + ")";
-        execMetaLabel.textContent = "Error";
+        setExecStatus("Error", "error");
         runCBtn.disabled = false;
         runBatchBtn.disabled = false;
+        checkSyntaxBtn.disabled = false;
         runCBtn.textContent = "\u25B6 Run (F9)";
         focusCodeEditor();
       }
@@ -2230,17 +2604,28 @@ int main() {
 
     clearRunnerBtn.addEventListener("click", async () => {
       await closeActiveSessionOnServer(true);
+      const prevCode = cCodeInput.value;
       setEditorFullText("");
       saveTabs();
       cOutputText.innerHTML = "";
+      batchVerdictBadge.classList.add("hidden-el");
       clearErrorMarker();
-      execMetaLabel.textContent = "Cleared";
+      setExecStatus("Cleared");
       runCBtn.disabled = false;
       runBatchBtn.disabled = false;
+      checkSyntaxBtn.disabled = false;
       runCBtn.textContent = "\u25B6 Run (F9)";
       hideAutocomplete();
       syncEditorVisuals(false);
       focusCodeEditor();
+      if (prevCode.trim()) {
+        showToast("Editor cleared", "Undo", () => {
+          setEditorFullText(prevCode);
+          saveTabs();
+          syncEditorVisuals(false);
+          focusCodeEditor();
+        });
+      }
     });
 
     copyOutputBtn.addEventListener("click", () => {
@@ -2249,6 +2634,7 @@ int main() {
       navigator.clipboard?.writeText(txt).catch(() => {});
       const prev = copyOutputBtn.textContent;
       copyOutputBtn.textContent = "Copied";
+      showToast("Output copied to clipboard");
       setTimeout(() => {
         copyOutputBtn.textContent = prev;
       }, 900);
@@ -2257,11 +2643,14 @@ int main() {
     applyEditorFontSize(editorFontSize);
     loadTabs();
     renderTabs();
+    renderRunHistory();
+    fetchSystemInfo();
     const initialTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
     cCodeInput.value = initialTab ? initialTab.code : DEFAULT_CODE;
     applyLanguageUI(initialTab ? (initialTab.lang || detectLangFromFilename(initialTab.name)) : "c");
     syncEditorVisuals(false);
     applyPaneSizes();
   </script>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 </body>
 </html>
