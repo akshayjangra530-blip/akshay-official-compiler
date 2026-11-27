@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://akshay-official-compiler.onrender.com/api/$1" },
+    { "source": "/run", "destination": "https://akshay-official-compiler.onrender.com/run" },
+    { "source": "/start", "destination": "https://akshay-official-compiler.onrender.com/start" },
+    { "source": "/input", "destination": "https://akshay-official-compiler.onrender.com/input" },
+    { "source": "/poll", "destination": "https://akshay-official-compiler.onrender.com/poll" },
+    { "source": "/stop", "destination": "https://akshay-official-compiler.onrender.com/stop" }
+  ]
+}

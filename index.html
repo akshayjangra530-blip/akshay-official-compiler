@@ -1920,21 +1920,33 @@ int main() {
       renderRunHistory();
     });
 
-    async function fetchSystemInfo() {
+    async function fetchSystemInfo(attempt = 1) {
       try {
         const res = await fetch("/api/info");
-        const info = await res.json();
+        const txt = await res.text();
+        if (!res.ok || !txt || txt.trim().startsWith("<")) {
+          throw new Error("Waking");
+        }
+        const info = JSON.parse(txt);
         if (info.ok) {
-          $("offlineStatusPill").textContent = "Local Compiler Ready";
+          $("offlineStatusPill").textContent = "Compiler Ready";
           systemInfoBox.innerHTML =
             `<strong>Compiler:</strong> ${escapeHtml(info.compiler)}<br />` +
             `<strong>Platform:</strong> ${escapeHtml(info.platform)}<br />` +
             `<strong>Python:</strong> ${escapeHtml(info.python)}<br />` +
-            `<strong>Status:</strong> Local Execution Ready`;
+            `<strong>Status:</strong> Execution Ready`;
+          return;
         }
+        throw new Error("Not ready");
       } catch (_) {
-        $("offlineStatusPill").textContent = "Server Offline";
-        systemInfoBox.textContent = "Server offline";
+        if (attempt < 10) {
+          $("offlineStatusPill").textContent = "Waking Compiler...";
+          systemInfoBox.textContent = "Compiler backend is waking up in background...";
+          setTimeout(() => fetchSystemInfo(attempt + 1), 2500);
+        } else {
+          $("offlineStatusPill").textContent = "Server Offline";
+          systemInfoBox.textContent = "Server offline";
+        }
       }
     }
 
@@ -1962,6 +1974,9 @@ int main() {
     async function parseJsonSafe(res) {
       const txt = await res.text();
       if (!txt || !txt.trim()) throw new Error("Server returned empty response");
+      if (txt.trim().startsWith("<")) {
+        throw new Error("Compiler backend is waking up — please click Run again in 3-5 seconds.");
+      }
       return JSON.parse(txt);
     }
 
