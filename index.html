@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>This Is Akshay Official Compiler — Online C &amp; C++ Code Runner</title>
+  <title>This Is Akshay Official Compiler — C &amp; C++ Code Runner</title>
   <meta
     name="description"
     content="This Is Akshay Official Compiler is a browser-based C and C++ code editor and gcc/g++ compiler with syntax highlighting, bracket matching, line error markers, DSA snippets, custom test cases, side PDF viewer, resizable panes, and multi-tab editing."
@@ -14,12 +14,13 @@
   />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://akshay-official-compiler.onrender.com/" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M25 20L13 32l12 12M39 20l12 12-12 12M35 16l-6 32' stroke='%2338bdf8' stroke-width='5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E" />
 
   <meta property="og:type" content="website" />
   <meta property="og:title" content="This Is Akshay Official Compiler — Online C &amp; C++ Code Runner" />
   <meta
     property="og:description"
-    content="Compile and run C and C++ programs online with real gcc and g++, interactive input, syntax highlighting, DSA snippets, side PDF notes, resizable panes, and keyboard shortcuts."
+    content="Compile and run C and C++ programs with real gcc and g++, interactive input, syntax highlighting, DSA snippets, side PDF notes, resizable panes, and keyboard shortcuts."
   />
   <meta property="og:url" content="https://akshay-official-compiler.onrender.com/" />
 
@@ -36,542 +37,541 @@
   </script>
 
   <link rel="stylesheet" href="style.css" />
-  <style>
-    .code-surface {
-      position: relative;
-      background: #14171f;
-      color: #f8f8f2;
-      overflow: hidden;
-      flex: 1;
-      min-width: 0;
-      height: 100%;
-    }
-
-    .line-backdrop {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .backdrop-line {
-      height: calc(var(--editor-font-size, 15px) * 1.5);
-    }
-
-    .backdrop-line.line-active {
-      background: rgba(56, 189, 248, 0.08);
-    }
-
-    body.light .backdrop-line.line-active {
-      background: rgba(37, 99, 235, 0.08);
-    }
-
-    .backdrop-line.line-error {
-      background: rgba(249, 38, 114, 0.22);
-    }
-
-    .backdrop-line.line-warning {
-      background: rgba(230, 219, 116, 0.18);
-    }
-
-    .syntax-layer,
-    .code-editor {
-      position: relative;
-      z-index: 2;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: var(--editor-font-size, 15px);
-      line-height: 1.5;
-      tab-size: 4;
-      white-space: pre;
-    }
-
-    .syntax-layer {
-      position: absolute;
-      inset: 0;
-      margin: 0;
-      padding: 12px;
-      pointer-events: none;
-      color: #f8f8f2;
-      overflow: hidden;
-    }
-
-    .code-editor {
-      width: 100%;
-      height: 100%;
-      padding: 12px;
-      background: transparent;
-      color: transparent;
-      caret-color: #f8f8f0;
-      border: none;
-      outline: none;
-      resize: none;
-      overflow: auto;
-    }
-
-    .tok-comment {
-      color: #75715e;
-      font-style: italic;
-    }
-
-    .tok-preproc {
-      color: #fd971f;
-    }
-
-    .tok-keyword {
-      color: #f9a825;
-      font-weight: 600;
-    }
-
-    .tok-main {
-      color: #ffffff;
-      font-weight: 700;
-    }
-
-    .tok-builtin {
-      color: #ef5350;
-      font-weight: 500;
-    }
-
-    .tok-string {
-      color: #4ade80;
-    }
-
-    .tok-fmt {
-      color: #facc15;
-      font-weight: 600;
-    }
-
-    .tok-escape {
-      color: #c084fc;
-    }
-
-    .tok-addr {
-      color: #38bdf8;
-      font-weight: 700;
-    }
-
-    .tok-number {
-      color: #fb7185;
-    }
-
-    .tok-bracket-match {
-      background: rgba(255, 213, 79, 0.25);
-      outline: 1px solid #ffd54f;
-      border-radius: 2px;
-    }
-
-    body.light .code-surface {
-      background: #fafafa;
-      color: #1e1e1e;
-    }
-
-    body.light .syntax-layer {
-      color: #1e1e1e;
-    }
-
-    body.light .code-editor {
-      caret-color: #1e1e1e;
-    }
-
-    body.light .tok-main {
-      color: #111111;
-    }
-
-    body.light .tok-keyword {
-      color: #b26a00;
-    }
-
-    body.light .tok-preproc {
-      color: #c65102;
-    }
-
-    body.light .tok-builtin {
-      color: #c62828;
-    }
-
-    body.light .tok-string {
-      color: #15803d;
-    }
-
-    body.light .tok-fmt {
-      color: #a16207;
-    }
-
-    body.light .tok-escape {
-      color: #7e22ce;
-    }
-
-    body.light .tok-addr {
-      color: #0284c7;
-    }
-
-    body.light .tok-number {
-      color: #be123c;
-    }
-
-    #inlineInputBar {
-      display: none !important;
-    }
-
-    .output-text {
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .out-typed-input {
-      color: #4ade80;
-      font-weight: 600;
-    }
-
-    .inline-box-input {
-      display: inline-block;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid rgba(74, 222, 128, 0.55);
-      outline: none;
-      color: #4ade80;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: inherit;
-      font-weight: 600;
-      caret-color: #4ade80;
-      min-width: 110px;
-      width: 55%;
-      padding: 0 2px;
-    }
-
-    body.light .out-typed-input,
-    body.light .inline-box-input {
-      color: #15803d;
-      border-bottom-color: rgba(21, 128, 61, 0.55);
-      caret-color: #15803d;
-    }
-  </style>
 </head>
 <body>
-  <div class="workspace-shell">
-    <!-- Left Vertical Expandable Strip -->
-    <aside id="leftSidebar" class="left-sidebar" aria-label="Workspace Drawer">
-      <div class="sidebar-top">
-        <button id="sidebarArrowBtn" class="arrow-toggle-btn" type="button" aria-label="Expand or collapse panel" aria-expanded="false" title="Expand / Collapse">
-          <span id="sidebarArrowIcon" class="arrow-icon">&#9656;</span>
-        </button>
-        <span class="sidebar-title">More</span>
-        <span class="sidebar-dots" aria-hidden="true">&#8942;</span>
+  <!-- Slide-over Workspace Drawer Backdrop -->
+  <div id="drawerBackdrop" class="drawer-backdrop hidden" aria-hidden="true"></div>
+
+  <!-- Slide-over Workspace Drawer -->
+  <aside id="workspaceDrawer" class="workspace-drawer" aria-label="Workspace Drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <span class="brand-glyph">&lt;/&gt;</span>
+        <span>Workspace</span>
       </div>
+      <button id="closeDrawerBtn" class="icon-btn" type="button" aria-label="Close workspace drawer" title="Close (Esc)">&#10005;</button>
+    </div>
 
-      <div id="sidebarContent" class="sidebar-content">
-        <section id="notesSection" class="drawer-card">
-          <h2>Quick Notes (Auto-Saved)</h2>
-          <p class="hint">Yahan jo bhi likhoge, wo tumhare browser mein apne aap save ho jayega.</p>
-          <textarea id="quickNotes" placeholder="Aaj ke tasks, DSA points, ya notes likho..."></textarea>
-          <button id="clearNotes" class="btn secondary" type="button">Clear Notes</button>
-        </section>
+    <div class="drawer-tabs" role="tablist" aria-label="Workspace sections">
+      <button class="drawer-tab active" data-drawer-tab="notes" role="tab" aria-selected="true" type="button">Notes</button>
+      <button class="drawer-tab" data-drawer-tab="history" role="tab" aria-selected="false" type="button">History</button>
+      <button class="drawer-tab" data-drawer-tab="cheatsheet" role="tab" aria-selected="false" type="button">Ref</button>
+      <button class="drawer-tab" data-drawer-tab="system" role="tab" aria-selected="false" type="button">System</button>
+    </div>
 
-        <section id="linksSection" class="drawer-card">
-          <h2>Quick Links</h2>
-          <ul class="links">
+    <div class="drawer-body">
+      <!-- Notes Panel -->
+      <section id="drawer-notes" class="drawer-panel active">
+        <div class="panel-row">
+          <span class="panel-label">Quick Notes (Auto-Saved)</span>
+          <button id="clearNotes" class="btn btn-xs btn-ghost-danger" type="button">Clear Notes</button>
+        </div>
+        <textarea id="quickNotes" class="notes-textarea" aria-label="Quick notes" placeholder="Aaj ke tasks, DSA points, ya notes likho..."></textarea>
+      </section>
+
+      <!-- History Panel -->
+      <section id="drawer-history" class="drawer-panel">
+        <div class="panel-row">
+          <span class="panel-label">Recent Runs</span>
+          <button id="clearHistoryBtn" class="btn btn-xs btn-ghost" type="button">Clear</button>
+        </div>
+        <div id="historyList" class="history-list">
+          <p class="empty-hint">No runs yet.</p>
+        </div>
+      </section>
+
+      <!-- Quick Reference & Links Panel -->
+      <section id="drawer-cheatsheet" class="drawer-panel">
+        <p class="panel-label">C / C++ Quick Reference</p>
+        <div class="ref-card">
+          <h4>printf / scanf Specifiers</h4>
+          <code>%d</code> int &nbsp; <code>%lld</code> long long<br />
+          <code>%f</code> float &nbsp; <code>%lf</code> double<br />
+          <code>%c</code> char &nbsp; <code>%s</code> string &nbsp; <code>%zu</code> size_t
+        </div>
+        <div class="ref-card">
+          <h4>C++ STL Essentials</h4>
+          <code>sort(v.begin(), v.end());</code><br />
+          <code>lower_bound(v.begin(), v.end(), x);</code><br />
+          <code>priority_queue&lt;int&gt; pq;</code><br />
+          <code>unordered_map&lt;int, int&gt; mp;</code>
+        </div>
+        <div class="ref-card">
+          <h4>Fast I/O</h4>
+          <code>ios::sync_with_stdio(false);</code><br />
+          <code>cin.tie(nullptr);</code>
+        </div>
+        <div class="ref-card">
+          <h4>Quick Links</h4>
+          <ul class="drawer-links">
             <li><a href="https://leetcode.com" target="_blank" rel="noopener noreferrer">LeetCode</a></li>
             <li><a href="https://nptel.ac.in" target="_blank" rel="noopener noreferrer">NPTEL</a></li>
             <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a></li>
           </ul>
-        </section>
+        </div>
+      </section>
 
-        <section id="historySection" class="drawer-card">
-          <div class="drawer-card-head">
-            <h2>Recent Runs</h2>
-            <button id="clearHistoryBtn" class="btn secondary tiny-btn" type="button">Clear</button>
-          </div>
-          <div id="historyList" class="history-list">
-            <p class="history-empty">No runs yet.</p>
-          </div>
-        </section>
+      <!-- Compiler & System Info Panel -->
+      <section id="drawer-system" class="drawer-panel">
+        <p class="panel-label">Compiler Environment</p>
+        <div id="systemInfoBox" class="ref-card">Detecting local compiler...</div>
+        <div class="ref-card">
+          <h4>Keyboard Shortcuts</h4>
+          <ul class="shortcut-list">
+            <li><span>Run Program</span><kbd>F9 / Ctrl+&#8629;</kbd></li>
+            <li><span>Check Syntax</span><kbd>Ctrl+Shift+B</kbd></li>
+            <li><span>Save File</span><kbd>Ctrl+S</kbd></li>
+            <li><span>Find &amp; Replace</span><kbd>Ctrl+F / Ctrl+H</kbd></li>
+            <li><span>Toggle Comment</span><kbd>Ctrl+/</kbd></li>
+            <li><span>Duplicate Line</span><kbd>Ctrl+D</kbd></li>
+            <li><span>Delete Line</span><kbd>Ctrl+Shift+K</kbd></li>
+            <li><span>Move Line</span><kbd>Alt + &#8593; / &#8595;</kbd></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </aside>
 
-        <section id="quickRefSection" class="drawer-card">
-          <h2>C / C++ Quick Ref</h2>
-          <div class="ref-mini">
-            <code>%d</code> int &nbsp; <code>%lld</code> long long &nbsp; <code>%lf</code> double<br />
-            <code>sort(v.begin(), v.end());</code><br />
-            <code>ios::sync_with_stdio(false); cin.tie(nullptr);</code>
+  <div id="appShell" class="app-shell">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="header-left">
+        <button id="openDrawerBtn" class="btn btn-icon-text" type="button" aria-label="Open workspace drawer" aria-expanded="false">
+          <span aria-hidden="true">&#9776;</span>
+          <span class="hide-xs">Workspace</span>
+        </button>
+        <div class="brand">
+          <span class="brand-logo" aria-hidden="true">&lt;/&gt;</span>
+          <div class="brand-text">
+            <h1>This Is Akshay Official Compiler</h1>
+            <span id="offlineStatusPill" class="offline-pill">Local Compiler Ready</span>
           </div>
-        </section>
-
-        <section id="sysInfoSection" class="drawer-card">
-          <h2>Compiler Environment</h2>
-          <div id="systemInfoBox" class="sys-info-box">Detecting compiler...</div>
-        </section>
+        </div>
       </div>
-    </aside>
 
-    <!-- Main Right Workspace -->
-    <div class="main-area">
-      <header class="header">
-        <div>
-          <h1>This Is Akshay Official Compiler</h1>
-          <p class="subtitle">C &amp; C++ IDE &#8226; Resizable PDF &amp; Panes &#8226; DSA Snippets &#8226; Custom Test Cases &#8226; Error Jump</p>
+      <div class="header-right">
+        <div class="zoom-group" role="group" aria-label="Editor font size">
+          <button id="zoomOutBtn" class="btn btn-xs btn-ghost" type="button" title="Decrease Font (Ctrl+-)">A-</button>
+          <span id="zoomResetBtn" class="zoom-value" style="cursor:pointer" title="Reset Font (Ctrl+0)">100%</span>
+          <button id="zoomInBtn" class="btn btn-xs btn-ghost" type="button" title="Increase Font (Ctrl++)">A+</button>
         </div>
+        <button id="themeToggle" class="btn btn-sm" type="button" aria-label="Toggle color theme">&#9728; Light</button>
+      </div>
+    </header>
 
-        <div class="header-actions">
-          <button id="zoomOutBtn" class="btn secondary mini-btn" type="button" title="Decrease Editor Font (Ctrl+-)">A-</button>
-          <button id="zoomResetBtn" class="btn secondary mini-btn" type="button" title="Reset Font Size (Ctrl+0)">100%</button>
-          <button id="zoomInBtn" class="btn secondary mini-btn" type="button" title="Increase Editor Font (Ctrl++)">A+</button>
-          <button id="themeToggle" class="btn" type="button">Toggle Theme</button>
-        </div>
-      </header>
+    <!-- Main IDE Card -->
+    <main class="ide-main">
+      <!-- Primary Single-Row Toolbar with Screenshot Option Colors -->
+      <div class="toolbar" role="toolbar" aria-label="Compiler and editor controls">
+        <div class="toolbar-group toolbar-compiler">
+          <select id="langSelect" class="select-ctrl" aria-label="Programming language" title="Select Language (C / C++)">
+            <option value="c" selected>C (gcc)</option>
+            <option value="cpp">C++ (g++)</option>
+          </select>
 
-      <main class="container">
-        <section class="card runner-card">
-          <!-- Compact Top Strip -->
-          <div class="card-top">
-            <div class="title-and-flags">
-              <h2 id="runnerTitle">C / C++ Code Runner</h2>
-              <div class="flags-group">
-                <select id="langSelect" class="mini-select" title="Select Language (C / C++)">
-                  <option value="c" selected>C (gcc)</option>
-                  <option value="cpp">C++ (g++)</option>
-                </select>
+          <label class="flag-chip" title="Show compiler warnings (-Wall)">
+            <input type="checkbox" id="flagWall" checked />
+            <span>-Wall</span>
+          </label>
+          <label class="flag-chip" title="Optimize code (-O2)">
+            <input type="checkbox" id="flagO2" />
+            <span>-O2</span>
+          </label>
+          <label class="flag-chip" title="Treat warnings as errors (-Werror)">
+            <input type="checkbox" id="flagWerror" />
+            <span>-Werror</span>
+          </label>
+          <label class="flag-chip" title="Link math library (-lm)">
+            <input type="checkbox" id="flagLm" checked />
+            <span>-lm</span>
+          </label>
 
-                <label class="flag-check" title="Show compiler warnings (-Wall)">
-                  <input type="checkbox" id="flagWall" checked /> -Wall
-                </label>
+          <select id="stdSelect" class="select-ctrl" aria-label="Language standard" title="Language Standard">
+            <option value="-std=c17" selected>C17</option>
+            <option value="-std=c23">C23</option>
+            <option value="-std=c11">C11</option>
+            <option value="-std=c99">C99</option>
+          </select>
 
-                <label class="flag-check" title="Optimize code (-O2)">
-                  <input type="checkbox" id="flagO2" /> -O2
-                </label>
-
-                <label class="flag-check" title="Treat warnings as errors (-Werror)">
-                  <input type="checkbox" id="flagWerror" /> -Werror
-                </label>
-
-                <label class="flag-check" title="Link math library (-lm)">
-                  <input type="checkbox" id="flagLm" checked /> -lm
-                </label>
-
-                <select id="stdSelect" class="mini-select" title="Language Standard">
-                  <option value="-std=c17" selected>C17</option>
-                  <option value="-std=c11">C11</option>
-                  <option value="-std=c99">C99</option>
-                </select>
-
-                <select id="snippetSelect" class="mini-select" title="Insert C / C++ / DSA Snippet">
-                  <option value="">+ Snippet</option>
-                  <option value="forloop">for Loop</option>
-                  <option value="whileloop">while Loop</option>
-                  <option value="switchcase">switch-case</option>
-                  <option value="arrayinput">C Array Input/Print</option>
-                  <option value="structdef">struct Template</option>
-                  <option value="cppmain">C++ Starter (iostream)</option>
-                  <option value="cppfastio">DSA Fast I/O Template</option>
-                  <option value="cppvector">C++ Vector Input/Print</option>
-                  <option value="cppclass">C++ Class Template</option>
-                  <option value="dsabinary">DSA Binary Search</option>
-                  <option value="dsaprefix">DSA Prefix Sum</option>
-                  <option value="dsatree">DSA Tree DFS/BFS</option>
-                </select>
-
-                <button id="openPdfBtn" class="btn secondary mini-btn" type="button" title="Open a PDF from file explorer on the side">Open PDF</button>
-                <input id="pdfPickerInput" type="file" accept=".pdf,application/pdf" style="display:none" />
-
-                <button id="openFileBtn" class="btn secondary mini-btn" type="button" title="Open .c / .cpp / .h file">Open File</button>
-                <button id="saveFileBtn" class="btn secondary mini-btn" type="button" title="Save current tab">Save File</button>
-                <input id="filePickerInput" type="file" accept=".c,.cpp,.cc,.cxx,.h,.hpp,.txt" style="display:none" />
-
-                <button id="formatCodeBtn" class="btn secondary mini-btn" type="button" title="Auto Format / Indent">Format</button>
-                <button id="findToggleBtn" class="btn secondary mini-btn" type="button" title="Find &amp; Replace (Ctrl+F)">Find</button>
-              </div>
+          <div class="popover-wrap">
+            <button id="moreFlagsBtn" class="btn btn-sm btn-secondary" type="button" aria-expanded="false">Flags &#9662;</button>
+            <div id="moreFlagsPopover" class="popover-menu hidden" role="menu">
+              <label class="popover-item"><input type="checkbox" id="flagWextra" /> <span>-Wextra (Extra warnings)</span></label>
+              <label class="popover-item"><input type="checkbox" id="flagWpedantic" /> <span>-Wpedantic (Strict ISO)</span></label>
+              <label class="popover-item"><input type="checkbox" id="flagDebug" /> <span>-g (Debug symbols)</span></label>
             </div>
+          </div>
+        </div>
 
-            <div class="btn-group">
-              <button id="zenModeBtn" class="btn secondary" type="button" title="Toggle Fullscreen Focus / Zen Mode">Zen Mode</button>
-              <button id="checkSyntaxBtn" class="btn secondary" type="button" title="Check compile errors without running (Ctrl+Shift+B)">Check</button>
-              <button id="clearRunnerBtn" class="btn secondary" type="button">Clear</button>
-              <button id="stopRunBtn" class="btn hidden-el" type="button" title="Stop running program">&#9632; Stop</button>
-              <button id="runCBtn" class="btn" type="button" title="Run code (F9 or Ctrl+Enter)">&#9654; Run (F9)</button>
+        <div class="toolbar-group toolbar-actions">
+          <select id="snippetSelect" class="select-ctrl" aria-label="Insert C / C++ / DSA Snippet" title="Insert C / C++ / DSA Snippet">
+            <option value="">+ Snippet</option>
+            <option value="forloop">for Loop</option>
+            <option value="whileloop">while Loop</option>
+            <option value="switchcase">switch-case</option>
+            <option value="arrayinput">C Array Input/Print</option>
+            <option value="structdef">struct Template</option>
+            <option value="cppmain">C++ Starter (iostream)</option>
+            <option value="cppfastio">DSA Fast I/O Template</option>
+            <option value="cppvector">C++ Vector Input/Print</option>
+            <option value="cppclass">C++ Class Template</option>
+            <option value="dsabinary">DSA Binary Search</option>
+            <option value="dsaprefix">DSA Prefix Sum</option>
+            <option value="dsatree">DSA Tree DFS/BFS</option>
+          </select>
+
+          <button id="openPdfBtn" class="btn btn-sm" type="button" title="Open a PDF from file explorer on the side">Open PDF</button>
+          <button id="openFileBtn" class="btn btn-sm" type="button" title="Open .c / .cpp / .h file">Open File</button>
+          <button id="saveFileBtn" class="btn btn-sm" type="button" title="Save current tab (Ctrl+S)">Save File</button>
+          <button id="formatCodeBtn" class="btn btn-sm" type="button" title="Auto Format / Indent">Format</button>
+          <button id="findToggleBtn" class="btn btn-sm" type="button" title="Find &amp; Replace (Ctrl+F)">Find</button>
+        </div>
+
+        <div class="toolbar-group toolbar-run">
+          <button id="zenModeBtn" class="btn btn-sm" type="button" title="Toggle Fullscreen Focus / Zen Mode">Zen Mode</button>
+          <button id="checkSyntaxBtn" class="btn btn-sm" type="button" title="Check compile errors without running (Ctrl+Shift+B)">Check</button>
+
+          <div class="popover-wrap">
+            <button id="clearMenuBtn" class="btn btn-sm" type="button" aria-expanded="false">Clear &#9662;</button>
+            <div id="clearMenuPopover" class="popover-menu popover-right hidden" role="menu">
+              <button id="clearOutputOnlyBtn" class="popover-btn" type="button">Clear Output Only</button>
+              <button id="clearRunnerBtn" class="popover-btn danger" type="button">Clear Active Editor…</button>
             </div>
           </div>
 
-          <!-- File / Program Tabs Bar -->
-          <div id="fileTabsBar" class="file-tabs-bar" role="tablist">
-            <div id="tabsList" class="tabs-list"></div>
-            <button id="addTabBtn" class="tab-add-btn" type="button" title="New Tab">+ Tab</button>
+          <button id="stopRunBtn" class="btn btn-sm hidden" type="button" title="Stop running program">&#9632; Stop</button>
+          <button id="runCBtn" class="btn btn-sm" type="button" title="Run code (F9 or Ctrl+Enter)">&#9654; Run (F9)</button>
+        </div>
+      </div>
+
+      <!-- Hidden File Inputs -->
+      <input id="pdfPickerInput" type="file" accept=".pdf,application/pdf" style="position:fixed;left:-9999px;top:-9999px;opacity:0;width:1px;height:1px;" />
+      <input id="filePickerInput" type="file" accept=".c,.cpp,.cc,.cxx,.h,.hpp,.txt,.py" style="position:fixed;left:-9999px;top:-9999px;opacity:0;width:1px;height:1px;" />
+
+      <!-- Tabs Bar -->
+      <div class="tabs-bar">
+        <div id="tabsList" class="tabs-list" role="tablist" aria-label="Open source files"></div>
+        <div class="tabs-actions">
+          <button id="addTabBtn" class="btn btn-xs" type="button" title="New Tab">+ Tab</button>
+          <button id="exitZenBtn" class="btn btn-xs btn-secondary hidden" type="button">Exit Zen</button>
+        </div>
+      </div>
+
+      <!-- Split Workspace -->
+      <div id="workspaceSplit" class="workspace-split">
+        <!-- Left: Code Editor Pane -->
+        <section id="editorPane" class="pane editor-pane" aria-label="Code editor">
+          <div class="pane-header">
+            <div class="pane-title-group">
+              <span id="editorLangLabel" class="pane-title">C Code (gcc):</span>
+              <button id="errorLineBadge" class="error-jump-pill hidden" type="button" title="Click to jump to error/warning line"></button>
+            </div>
+            <span id="cursorPosLabel" class="cursor-pos">Ln 1, Col 1</span>
           </div>
 
           <!-- Find & Replace Bar -->
-          <div id="findReplaceBar" class="find-replace-bar hidden-bar">
-            <input id="findInput" type="text" class="find-input" placeholder="Find..." />
-            <input id="replaceInput" type="text" class="find-input" placeholder="Replace with..." />
-            <button id="findNextBtn" class="btn secondary mini-btn" type="button">Next</button>
-            <button id="replaceOneBtn" class="btn secondary mini-btn" type="button">Replace</button>
-            <button id="replaceAllBtn" class="btn secondary mini-btn" type="button">Replace All</button>
+          <div id="findReplaceBar" class="find-bar hidden">
+            <input id="findInput" type="text" class="find-input" placeholder="Find..." aria-label="Find text" />
+            <input id="replaceInput" type="text" class="find-input" placeholder="Replace with..." aria-label="Replace text" />
+            <button id="findNextBtn" class="btn btn-xs btn-secondary" type="button">Next</button>
+            <button id="replaceOneBtn" class="btn btn-xs btn-secondary" type="button">Replace</button>
+            <button id="replaceAllBtn" class="btn btn-xs btn-secondary" type="button">Replace All</button>
             <span id="findCountLabel" class="find-count">0 matches</span>
-            <button id="closeFindBtn" class="btn secondary mini-btn" type="button">&times;</button>
+            <button id="closeFindBtn" class="icon-btn" type="button" aria-label="Close find bar">&#10005;</button>
           </div>
 
-          <!-- Main Split Area (Resizable PDF Pane + Resizable Code/Output Grid) -->
-          <div id="workspaceBody" class="workspace-body">
-            <!-- Side PDF Viewer Pane -->
-            <aside id="pdfDockPane" class="pdf-dock-pane hidden-pane" aria-label="PDF Reference Viewer">
-              <div class="pdf-dock-header">
-                <div class="pdf-title-wrap">
-                  <span class="pdf-badge">PDF</span>
-                  <span id="pdfFileNameLabel" class="pdf-filename">No PDF loaded</span>
-                </div>
-                <div class="pdf-actions">
-                  <button id="changePdfBtn" class="btn secondary tiny-btn" type="button" title="Choose another PDF">Change</button>
-                  <button id="closePdfBtn" class="btn secondary tiny-btn" type="button" title="Close PDF Viewer">&times; Close</button>
-                </div>
+          <!-- Editor Surface -->
+          <div class="editor-container">
+            <div id="lineNumbers" class="line-gutter" aria-hidden="true">1</div>
+            <div class="code-stage">
+              <div id="activeLineHighlight" class="line-highlight line-active" aria-hidden="true"></div>
+              <div id="errorLineHighlight" class="line-highlight line-error hidden" aria-hidden="true"></div>
+              <pre id="syntaxHighlightLayer" class="highlight-layer" aria-hidden="true"></pre>
+              <textarea
+                id="cCodeInput"
+                class="code-textarea"
+                aria-label="C and C++ source code editor"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                autocorrect="off"
+                wrap="off"
+              ></textarea>
+            </div>
+            <ul id="autocompletePopup" class="autocomplete-popup hidden" role="listbox" aria-label="Code suggestions"></ul>
+          </div>
+        </section>
+
+        <!-- Vertical Splitter -->
+        <div id="paneResizer" class="splitter splitter-vertical" role="separator" aria-orientation="vertical" aria-label="Resize editor and output panes" tabindex="0"></div>
+
+        <!-- Right: Output & Batch Test Pane -->
+        <section id="outputPane" class="pane right-pane" aria-label="Output and test cases">
+          <!-- Output Terminal -->
+          <div id="outputSection" class="output-section">
+            <div class="pane-header">
+              <div class="pane-title-group">
+                <span class="pane-title">Output:</span>
+                <span id="execMetaLabel" class="status-badge status-idle">Ready</span>
               </div>
-              <iframe id="pdfViewerFrame" class="pdf-frame" title="PDF Viewer"></iframe>
-            </aside>
-
-            <!-- Draggable Splitter Between PDF & Code/Output -->
-            <div id="pdfResizer" class="resizer resizer-v hidden-pane" title="Drag to resize PDF &amp; Code panes" role="separator" aria-orientation="vertical"></div>
-
-            <!-- Editor + Output Split Grid -->
-            <div id="splitGrid" class="split-grid">
-              <!-- Editor Pane -->
-              <div id="codePane" class="pane-left">
-                <div class="pane-header-row">
-                  <span id="editorLangLabel" class="output-label">C / C++ Code:</span>
-                  <div class="output-meta-group">
-                    <span id="errorLineBadge" class="error-badge hidden-badge" title="Click to jump to error/warning line"></span>
-                    <span id="cursorPosLabel" class="meta-pill">Ln 1, Col 1</span>
-                  </div>
-                </div>
-
-                <div class="editor-wrapper">
-                  <div id="lineNumbers" class="line-numbers" aria-hidden="true">1</div>
-
-                  <div class="code-surface">
-                    <div id="lineHighlightBackdrop" class="line-backdrop" aria-hidden="true"></div>
-                    <pre id="syntaxHighlightLayer" class="syntax-layer" aria-hidden="true"></pre>
-                    <textarea id="cCodeInput" class="code-editor" spellcheck="false" wrap="off"></textarea>
-                  </div>
-
-                  <ul id="autocompletePopup" class="autocomplete-popup hidden-popup" role="listbox" aria-label="Code suggestions"></ul>
-                </div>
+              <div class="pane-actions">
+                <button id="sendEofBtn" class="btn btn-xs hidden" type="button" title="Send End-of-File (Ctrl+D) to stdin">EOF (^D)</button>
+                <button id="copyOutputBtn" class="btn btn-xs btn-secondary" type="button" title="Copy output">Copy</button>
               </div>
+            </div>
 
-              <!-- Draggable Splitter Between Code Editor & Output -->
-              <div id="paneResizer" class="resizer resizer-v" title="Drag to resize Code &amp; Output boxes" role="separator"></div>
-
-              <!-- Output + Custom Test Cases Pane -->
-              <div id="outputPane" class="pane-right">
-                <div class="pane-header-row">
-                  <span class="output-label">Output:</span>
-                  <div class="output-meta-group">
-                    <span id="execMetaLabel" class="meta-pill">Ready</span>
-                    <button id="sendEofBtn" class="btn secondary tiny-btn hidden-el" type="button" title="Send End-of-File (Ctrl+D) to stdin">EOF (^D)</button>
-                    <button id="copyOutputBtn" class="btn secondary tiny-btn" type="button" title="Copy output">Copy</button>
-                  </div>
-                </div>
-
-                <div id="outputSurface" class="output-box">
-                  <pre id="cOutputText" class="output-text">Neeche "Run" (ya F9) dabao aur output dekho...</pre>
-                </div>
-
-                <div id="inlineInputBar" class="inline-input-bar hidden-bar">
-                  <span class="inline-prompt-label">Input &gt;</span>
-                  <input
-                    id="inlineStdinInput"
-                    type="text"
-                    class="inline-stdin-input"
-                    placeholder="input likho aur Enter dabao..."
-                    autocomplete="off"
-                  />
-                </div>
-
-                <div class="testcase-panel">
-                  <div class="testcase-toolbar">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                      <span class="testcase-title">Custom Test Input (Batch)</span>
-                      <span id="batchVerdictBadge" class="verdict-badge hidden-el"></span>
-                    </div>
-                    <div class="testcase-presets">
-                      <button type="button" class="preset-chip" data-preset="sample1">Sample 1</button>
-                      <button type="button" class="preset-chip" data-preset="sample2">Sample 2</button>
-                      <button type="button" class="preset-chip" data-preset="edge">Edge Case</button>
-                      <button id="runBatchBtn" type="button" class="btn secondary tiny-btn" title="Run with custom input below (non-interactive)">Run Test Input</button>
-                    </div>
-                  </div>
-                  <div class="testcase-grid">
-                    <div class="testcase-col">
-                      <span class="testcase-sublabel">Stdin Input</span>
-                      <textarea
-                        id="customTestInput"
-                        class="testcase-textarea"
-                        rows="2"
-                        placeholder="Batch test input yahan likho (e.g., 5&#10;10 20 30 40 50)..."
-                      ></textarea>
-                    </div>
-                    <div class="testcase-col">
-                      <span class="testcase-sublabel">Expected Output (Optional)</span>
-                      <textarea
-                        id="expectedTestOutput"
-                        class="testcase-textarea"
-                        rows="2"
-                        placeholder="Expected output likho PASS / FAIL verify karne ke liye..."
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div id="outputSurface" class="terminal-scroll">
+              <pre id="cOutputText" class="output-pre">Neeche "Run" (ya F9) dabao aur output dekho...</pre>
             </div>
           </div>
 
-          <!-- Bottom Shortcut Cheat Strip -->
-          <div class="shortcut-strip">
-            <span><b>F9 / Ctrl+&#8629;</b> Run</span>
-            <span><b>Ctrl+Shift+B</b> Check</span>
-            <span><b>Ctrl+S</b> Save</span>
-            <span><b>Tab/Enter</b> Suggestion</span>
-            <span><b>Ctrl+/</b> Comment</span>
-            <span><b>Ctrl+D</b> Duplicate</span>
-            <span><b>Ctrl+Shift+K</b> Delete Line</span>
-            <span><b>Alt+ &#8593; / &#8595;</b> Move Line</span>
-            <span><b>Ctrl+F</b> Find/Replace</span>
-            <span><b>Drag Divider</b> Resize Panes</span>
+          <!-- Horizontal Splitter -->
+          <div id="horizontalSplitter" class="splitter splitter-horizontal" role="separator" aria-orientation="horizontal" aria-label="Resize output and batch tests" tabindex="0"></div>
+
+          <!-- Batch Test Runner -->
+          <div id="batchSection" class="batch-section">
+            <div class="pane-header batch-header">
+              <div class="pane-title-group">
+                <span class="pane-title">Custom Test Input (Batch)</span>
+                <span id="batchVerdictBadge" class="status-badge hidden"></span>
+              </div>
+              <div class="pane-actions">
+                <button type="button" class="btn btn-xs preset-btn" data-preset="sample1">Sample 1</button>
+                <button type="button" class="btn btn-xs preset-btn" data-preset="sample2">Sample 2</button>
+                <button type="button" class="btn btn-xs preset-btn" data-preset="edge">Edge Case</button>
+                <button id="runBatchBtn" type="button" class="btn btn-xs btn-accent" title="Run with custom input below (non-interactive)">Run Test Input</button>
+              </div>
+            </div>
+
+            <div class="batch-grid">
+              <div class="batch-col">
+                <label class="batch-label" for="customTestInput">Stdin Input</label>
+                <textarea
+                  id="customTestInput"
+                  class="batch-textarea"
+                  placeholder="Batch test input yahan likho (e.g., 5&#10;10 20 30 40 50)..."
+                ></textarea>
+              </div>
+              <div class="batch-col">
+                <label class="batch-label" for="expectedTestOutput">Expected Output (Optional)</label>
+                <textarea
+                  id="expectedTestOutput"
+                  class="batch-textarea"
+                  placeholder="Expected output likho PASS / FAIL verify karne ke liye..."
+                ></textarea>
+              </div>
+            </div>
           </div>
         </section>
-      </main>
+
+        <!-- Optional Side PDF Reference Pane -->
+        <div id="pdfResizer" class="splitter splitter-vertical hidden" role="separator" aria-orientation="vertical" aria-label="Resize PDF viewer"></div>
+        <aside id="pdfDockPane" class="pane pdf-pane hidden" aria-label="PDF Reference Viewer">
+          <div class="pane-header">
+            <span id="pdfFileNameLabel" class="pane-title">No PDF loaded</span>
+            <div class="pane-actions">
+              <button id="changePdfBtn" class="btn btn-xs btn-secondary" type="button" title="Choose another PDF">Change PDF</button>
+              <button id="closePdfBtn" class="icon-btn" type="button" aria-label="Close PDF viewer">&#10005;</button>
+            </div>
+          </div>
+          <div class="pdf-viewer-wrap">
+            <iframe id="pdfViewerFrame" class="pdf-frame" title="PDF Viewer"></iframe>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- Bottom Keyboard Shortcut Bar -->
+    <footer class="shortcut-footer">
+      <span><kbd>F9</kbd> / <kbd>Ctrl+&#8629;</kbd> Run</span>
+      <span><kbd>Ctrl+Shift+B</kbd> Check</span>
+      <span><kbd>Ctrl+S</kbd> Save</span>
+      <span><kbd>Ctrl+/</kbd> Comment</span>
+      <span><kbd>Ctrl+D</kbd> Duplicate</span>
+      <span><kbd>Ctrl+F</kbd> Find</span>
+      <span><kbd>Alt+&#8593;/&#8595;</kbd> Move Line</span>
+      <span><kbd>Tab</kbd> Indent</span>
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-card">
+      <h3 id="confirmTitle">Clear Active Editor?</h3>
+      <p id="confirmMessage">This will clear the code in the current tab. You can Undo right after from the notification.</p>
+      <div class="modal-actions">
+        <button id="confirmCancelBtn" class="btn btn-sm btn-secondary" type="button">Cancel</button>
+        <button id="confirmProceedBtn" class="btn btn-sm btn-danger" type="button">Clear</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // Left Drawer & Quick Notes
-    const notesArea = document.getElementById("quickNotes");
-    const clearBtn = document.getElementById("clearNotes");
-    const themeBtn = document.getElementById("themeToggle");
-    const zenModeBtn = document.getElementById("zenModeBtn");
-    const zoomInBtn = document.getElementById("zoomInBtn");
-    const zoomOutBtn = document.getElementById("zoomOutBtn");
-    const zoomResetBtn = document.getElementById("zoomResetBtn");
+    const $ = (id) => document.getElementById(id);
 
+    // Elements
+    const appShell = $("appShell");
+    const workspaceDrawer = $("workspaceDrawer");
+    const drawerBackdrop = $("drawerBackdrop");
+    const openDrawerBtn = $("openDrawerBtn");
+    const closeDrawerBtn = $("closeDrawerBtn");
+
+    const notesArea = $("quickNotes");
+    const clearNotesBtn = $("clearNotes");
+    const themeBtn = $("themeToggle");
+    const zenModeBtn = $("zenModeBtn");
+    const exitZenBtn = $("exitZenBtn");
+    const zoomInBtn = $("zoomInBtn");
+    const zoomOutBtn = $("zoomOutBtn");
+    const zoomResetBtn = $("zoomResetBtn");
+
+    const moreFlagsBtn = $("moreFlagsBtn");
+    const moreFlagsPopover = $("moreFlagsPopover");
+    const clearMenuBtn = $("clearMenuBtn");
+    const clearMenuPopover = $("clearMenuPopover");
+    const clearOutputOnlyBtn = $("clearOutputOnlyBtn");
+    const clearRunnerBtn = $("clearRunnerBtn");
+
+    const confirmModal = $("confirmModal");
+    const confirmCancelBtn = $("confirmCancelBtn");
+    const confirmProceedBtn = $("confirmProceedBtn");
+
+    const openPdfBtn = $("openPdfBtn");
+    const changePdfBtn = $("changePdfBtn");
+    const closePdfBtn = $("closePdfBtn");
+    const pdfPickerInput = $("pdfPickerInput");
+    const pdfDockPane = $("pdfDockPane");
+    const pdfResizer = $("pdfResizer");
+    const pdfViewerFrame = $("pdfViewerFrame");
+    const pdfFileNameLabel = $("pdfFileNameLabel");
+
+    const workspaceSplit = $("workspaceSplit");
+    const editorPane = $("editorPane");
+    const outputPane = $("outputPane");
+    const outputSection = $("outputSection");
+    const batchSection = $("batchSection");
+    const paneResizer = $("paneResizer");
+    const horizontalSplitter = $("horizontalSplitter");
+
+    const cCodeInput = $("cCodeInput");
+    const syntaxHighlightLayer = $("syntaxHighlightLayer");
+    const activeLineHighlight = $("activeLineHighlight");
+    const errorLineHighlight = $("errorLineHighlight");
+    const lineNumbersEl = $("lineNumbers");
+    const cursorPosLabel = $("cursorPosLabel");
+    const errorLineBadge = $("errorLineBadge");
+    const execMetaLabel = $("execMetaLabel");
+    const copyOutputBtn = $("copyOutputBtn");
+    const editorLangLabel = $("editorLangLabel");
+
+    const openFileBtn = $("openFileBtn");
+    const saveFileBtn = $("saveFileBtn");
+    const filePickerInput = $("filePickerInput");
+
+    const runCBtn = $("runCBtn");
+    const stopRunBtn = $("stopRunBtn");
+    const checkSyntaxBtn = $("checkSyntaxBtn");
+    const sendEofBtn = $("sendEofBtn");
+    const runBatchBtn = $("runBatchBtn");
+    const outputSurface = $("outputSurface");
+    const cOutputText = $("cOutputText");
+    const customTestInput = $("customTestInput");
+    const expectedTestOutput = $("expectedTestOutput");
+    const batchVerdictBadge = $("batchVerdictBadge");
+    const historyListEl = $("historyList");
+    const clearHistoryBtn = $("clearHistoryBtn");
+    const systemInfoBox = $("systemInfoBox");
+
+    const autocompletePopup = $("autocompletePopup");
+
+    const langSelect = $("langSelect");
+    const flagWall = $("flagWall");
+    const flagO2 = $("flagO2");
+    const flagWerror = $("flagWerror");
+    const flagLm = $("flagLm");
+    const flagWextra = $("flagWextra");
+    const flagWpedantic = $("flagWpedantic");
+    const flagDebug = $("flagDebug");
+    const stdSelect = $("stdSelect");
+    const snippetSelect = $("snippetSelect");
+    const formatCodeBtn = $("formatCodeBtn");
+
+    const findToggleBtn = $("findToggleBtn");
+    const findReplaceBar = $("findReplaceBar");
+    const findInput = $("findInput");
+    const replaceInput = $("replaceInput");
+    const findNextBtn = $("findNextBtn");
+    const replaceOneBtn = $("replaceOneBtn");
+    const replaceAllBtn = $("replaceAllBtn");
+    const findCountLabel = $("findCountLabel");
+    const closeFindBtn = $("closeFindBtn");
+
+    const tabsList = $("tabsList");
+    const addTabBtn = $("addTabBtn");
+
+    // Workspace Slide-over Drawer
+    function openDrawer() {
+      workspaceDrawer.classList.add("open");
+      workspaceDrawer.setAttribute("aria-hidden", "false");
+      drawerBackdrop.classList.remove("hidden");
+      openDrawerBtn.setAttribute("aria-expanded", "true");
+    }
+
+    function closeDrawer() {
+      workspaceDrawer.classList.remove("open");
+      workspaceDrawer.setAttribute("aria-hidden", "true");
+      drawerBackdrop.classList.add("hidden");
+      openDrawerBtn.setAttribute("aria-expanded", "false");
+    }
+
+    openDrawerBtn.addEventListener("click", openDrawer);
+    closeDrawerBtn.addEventListener("click", closeDrawer);
+    drawerBackdrop.addEventListener("click", closeDrawer);
+
+    document.querySelectorAll(".drawer-tab").forEach((tabBtn) => {
+      tabBtn.addEventListener("click", () => {
+        const target = tabBtn.dataset.drawerTab;
+        document.querySelectorAll(".drawer-tab").forEach((b) => {
+          const active = b === tabBtn;
+          b.classList.toggle("active", active);
+          b.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        document.querySelectorAll(".drawer-panel").forEach((panel) => {
+          panel.classList.toggle("active", panel.id === `drawer-${target}`);
+        });
+      });
+    });
+
+    // Quick Notes (Auto-Saved)
     notesArea.value = localStorage.getItem("personal_notes") || "";
     notesArea.addEventListener("input", () => {
       localStorage.setItem("personal_notes", notesArea.value);
     });
-
-    clearBtn.addEventListener("click", () => {
+    clearNotesBtn.addEventListener("click", () => {
       notesArea.value = "";
       localStorage.removeItem("personal_notes");
+      showToast("Notes cleared");
     });
 
+    // Theme Persistence
     function applyTheme(isLight) {
       document.body.classList.toggle("light", isLight);
       themeBtn.textContent = isLight ? "\uD83C\uDF19 Dark" : "\u2600 Light";
       localStorage.setItem("akshay_ide_theme", isLight ? "light" : "dark");
     }
-
     applyTheme(localStorage.getItem("akshay_ide_theme") === "light");
-
     themeBtn.addEventListener("click", () => {
       applyTheme(!document.body.classList.contains("light"));
     });
 
+    // Zen / Fullscreen Mode
     async function setZenAndFullscreen(enable) {
-      document.body.classList.toggle("zen-mode", enable);
+      appShell.classList.toggle("zen-mode", enable);
       zenModeBtn.textContent = enable ? "Exit Zen" : "Zen Mode";
-
+      exitZenBtn.classList.toggle("hidden", !enable);
       try {
         if (enable && !document.fullscreenElement && document.documentElement.requestFullscreen) {
           await document.documentElement.requestFullscreen();
@@ -581,116 +581,59 @@
       } catch (_) {}
     }
 
-    zenModeBtn.addEventListener("click", () => {
-      const nextState = !document.body.classList.contains("zen-mode");
-      setZenAndFullscreen(nextState);
-    });
-
+    zenModeBtn.addEventListener("click", () => setZenAndFullscreen(!appShell.classList.contains("zen-mode")));
+    exitZenBtn.addEventListener("click", () => setZenAndFullscreen(false));
     document.addEventListener("fullscreenchange", () => {
-      if (!document.fullscreenElement && document.body.classList.contains("zen-mode")) {
-        document.body.classList.remove("zen-mode");
+      if (!document.fullscreenElement && appShell.classList.contains("zen-mode")) {
+        appShell.classList.remove("zen-mode");
         zenModeBtn.textContent = "Zen Mode";
+        exitZenBtn.classList.add("hidden");
       }
     });
 
-    const leftSidebar = document.getElementById("leftSidebar");
-    const sidebarArrowBtn = document.getElementById("sidebarArrowBtn");
-    const sidebarArrowIcon = document.getElementById("sidebarArrowIcon");
-
-    sidebarArrowBtn.addEventListener("click", () => {
-      const isExpanded = leftSidebar.classList.toggle("expanded");
-      sidebarArrowBtn.setAttribute("aria-expanded", isExpanded ? "true" : "false");
-      sidebarArrowIcon.innerHTML = isExpanded ? "&#9666;" : "&#9656;";
-    });
-
-    // Resizable Panes (PDF Dock + Code Editor + Output Box)
-    const openPdfBtn = document.getElementById("openPdfBtn");
-    const changePdfBtn = document.getElementById("changePdfBtn");
-    const closePdfBtn = document.getElementById("closePdfBtn");
-    const pdfPickerInput = document.getElementById("pdfPickerInput");
-    const pdfDockPane = document.getElementById("pdfDockPane");
-    const pdfResizer = document.getElementById("pdfResizer");
-    const paneResizer = document.getElementById("paneResizer");
-    const splitGrid = document.getElementById("splitGrid");
-    const codePane = document.getElementById("codePane");
-    const outputPane = document.getElementById("outputPane");
-    const pdfViewerFrame = document.getElementById("pdfViewerFrame");
-    const pdfFileNameLabel = document.getElementById("pdfFileNameLabel");
-    const workspaceBody = document.getElementById("workspaceBody");
-
-    let currentPdfBlobUrl = null;
-    let pdfRatio = 0.5;   // PDF width ratio inside workspaceBody
-    let subRatio = 0.55;  // Code editor size ratio inside splitGrid
-
-    function applyPaneSizes() {
-      const pdfOpen = workspaceBody.classList.contains("pdf-active");
-      const stackedSub = pdfOpen && window.innerWidth > 900;
-
-      paneResizer.classList.toggle("resizer-h", stackedSub);
-      paneResizer.classList.toggle("resizer-v", !stackedSub);
-
-      if (pdfOpen) {
-        const totalW = workspaceBody.clientWidth || window.innerWidth;
-        const clampedPdfW = Math.max(240, Math.min(totalW - 260, totalW * pdfRatio));
-        pdfDockPane.style.width = clampedPdfW + "px";
-        pdfDockPane.style.flex = "0 0 auto";
-        splitGrid.style.width = "auto";
-        splitGrid.style.flex = "1 1 0";
-      } else {
-        pdfDockPane.style.width = "";
-        pdfDockPane.style.flex = "";
-        splitGrid.style.flex = "1 1 auto";
-        splitGrid.style.width = "100%";
-      }
-
-      if (stackedSub) {
-        splitGrid.style.flexDirection = "column";
-        const totalH = splitGrid.clientHeight || 500;
-        const clampedTopH = Math.max(130, Math.min(totalH - 130, totalH * subRatio));
-        codePane.style.height = clampedTopH + "px";
-        codePane.style.width = "";
-        codePane.style.flex = "0 0 auto";
-        outputPane.style.height = "";
-        outputPane.style.width = "";
-        outputPane.style.flex = "1 1 0";
-      } else if (window.innerWidth > 900) {
-        splitGrid.style.flexDirection = "row";
-        const totalW = splitGrid.clientWidth || 800;
-        const clampedLeftW = Math.max(220, Math.min(totalW - 220, totalW * subRatio));
-        codePane.style.width = clampedLeftW + "px";
-        codePane.style.height = "";
-        codePane.style.flex = "0 0 auto";
-        outputPane.style.width = "";
-        outputPane.style.height = "";
-        outputPane.style.flex = "1 1 0";
-      } else {
-        splitGrid.style.flexDirection = "column";
-        codePane.style.width = "";
-        codePane.style.height = "";
-        codePane.style.flex = "";
-        outputPane.style.width = "";
-        outputPane.style.height = "";
-        outputPane.style.flex = "";
-      }
+    // Popovers (More Flags & Clear Menu)
+    function closeAllPopovers() {
+      moreFlagsPopover.classList.add("hidden");
+      moreFlagsBtn.setAttribute("aria-expanded", "false");
+      clearMenuPopover.classList.add("hidden");
+      clearMenuBtn.setAttribute("aria-expanded", "false");
     }
 
+    moreFlagsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const willOpen = moreFlagsPopover.classList.contains("hidden");
+      closeAllPopovers();
+      moreFlagsPopover.classList.toggle("hidden", !willOpen);
+      moreFlagsBtn.setAttribute("aria-expanded", String(willOpen));
+    });
+
+    clearMenuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const willOpen = clearMenuPopover.classList.contains("hidden");
+      closeAllPopovers();
+      clearMenuPopover.classList.toggle("hidden", !willOpen);
+      clearMenuBtn.setAttribute("aria-expanded", String(willOpen));
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".popover-wrap")) closeAllPopovers();
+    });
+
+    // Side PDF Viewer & Resizable Splitters
+    let currentPdfBlobUrl = null;
     function openPdfPicker() {
-      pdfPickerInput.value = "";
       pdfPickerInput.click();
     }
 
     function closeSidePdf() {
-      pdfDockPane.classList.add("hidden-pane");
-      pdfResizer.classList.add("hidden-pane");
-      workspaceBody.classList.remove("pdf-active");
-      document.body.classList.remove("pdf-compact-top");
+      pdfDockPane.classList.add("hidden");
+      pdfResizer.classList.add("hidden");
       pdfViewerFrame.src = "about:blank";
       pdfFileNameLabel.textContent = "No PDF loaded";
       if (currentPdfBlobUrl) {
         URL.revokeObjectURL(currentPdfBlobUrl);
         currentPdfBlobUrl = null;
       }
-      applyPaneSizes();
     }
 
     openPdfBtn.addEventListener("click", openPdfPicker);
@@ -700,142 +643,63 @@
     pdfPickerInput.addEventListener("change", (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-
-      if (currentPdfBlobUrl) {
-        URL.revokeObjectURL(currentPdfBlobUrl);
-      }
+      const name = file.name;
+      if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
       currentPdfBlobUrl = URL.createObjectURL(file);
-      pdfViewerFrame.src = currentPdfBlobUrl;
-      pdfFileNameLabel.textContent = file.name;
-
-      pdfDockPane.classList.remove("hidden-pane");
-      pdfResizer.classList.remove("hidden-pane");
-      workspaceBody.classList.add("pdf-active");
-      document.body.classList.add("pdf-compact-top");
-      applyPaneSizes();
+      e.target.value = "";
+      requestAnimationFrame(() => {
+        pdfViewerFrame.src = currentPdfBlobUrl;
+        pdfFileNameLabel.textContent = name;
+        pdfDockPane.classList.remove("hidden");
+        pdfResizer.classList.remove("hidden");
+      });
     });
 
-    // Dragging PDF Splitter (Horizontal)
-    let dragMode = null;
-    let dragOverlay = null;
+    function setupDragSplitter(splitterEl, axis, onMove) {
+      splitterEl.addEventListener("mousedown", (e) => {
+        if (window.innerWidth <= 960 && axis === "x") return;
+        e.preventDefault();
+        splitterEl.classList.add("dragging");
+        const shield = document.createElement("div");
+        shield.className = "drag-shield";
+        shield.style.cursor = axis === "x" ? "col-resize" : "row-resize";
+        document.body.appendChild(shield);
 
-    function createDragShield(cursorStyle) {
-      const shield = document.createElement("div");
-      shield.className = "drag-shield";
-      shield.style.cursor = cursorStyle;
-      document.body.appendChild(shield);
-      return shield;
+        const moveHandler = (ev) => onMove(ev);
+        const upHandler = () => {
+          splitterEl.classList.remove("dragging");
+          shield.remove();
+          document.removeEventListener("mousemove", moveHandler);
+          document.removeEventListener("mouseup", upHandler);
+        };
+        document.addEventListener("mousemove", moveHandler);
+        document.addEventListener("mouseup", upHandler);
+      });
     }
 
-    pdfResizer.addEventListener("mousedown", (e) => {
-      if (!workspaceBody.classList.contains("pdf-active")) return;
-      e.preventDefault();
-      dragMode = "pdf";
-      pdfResizer.classList.add("dragging");
-      dragOverlay = createDragShield("col-resize");
+    setupDragSplitter(paneResizer, "x", (e) => {
+      const rect = workspaceSplit.getBoundingClientRect();
+      const pdfWidth = pdfDockPane.classList.contains("hidden") ? 0 : pdfDockPane.getBoundingClientRect().width + 5;
+      const availW = rect.width - pdfWidth;
+      const leftW = Math.max(240, Math.min(availW - 240, e.clientX - rect.left));
+      editorPane.style.flex = `0 0 ${leftW}px`;
+      outputPane.style.flex = "1 1 0";
     });
 
-    paneResizer.addEventListener("mousedown", (e) => {
-      if (window.innerWidth <= 900) return;
-      e.preventDefault();
-      dragMode = workspaceBody.classList.contains("pdf-active") ? "sub-y" : "sub-x";
-      paneResizer.classList.add("dragging");
-      dragOverlay = createDragShield(dragMode === "sub-y" ? "row-resize" : "col-resize");
+    setupDragSplitter(pdfResizer, "x", (e) => {
+      const rect = workspaceSplit.getBoundingClientRect();
+      const pdfW = Math.max(240, Math.min(rect.width - 420, rect.right - e.clientX));
+      pdfDockPane.style.flex = `0 0 ${pdfW}px`;
     });
 
-    document.addEventListener("mousemove", (e) => {
-      if (!dragMode) return;
-
-      if (dragMode === "pdf") {
-        const rect = workspaceBody.getBoundingClientRect();
-        const rawW = e.clientX - rect.left;
-        const clampedW = Math.max(240, Math.min(rect.width - 260, rawW));
-        pdfRatio = clampedW / Math.max(1, rect.width);
-        applyPaneSizes();
-      } else if (dragMode === "sub-y") {
-        const rect = splitGrid.getBoundingClientRect();
-        const rawH = e.clientY - rect.top;
-        const clampedH = Math.max(130, Math.min(rect.height - 130, rawH));
-        subRatio = clampedH / Math.max(1, rect.height);
-        applyPaneSizes();
-      } else if (dragMode === "sub-x") {
-        const rect = splitGrid.getBoundingClientRect();
-        const rawW = e.clientX - rect.left;
-        const clampedW = Math.max(220, Math.min(rect.width - 220, rawW));
-        subRatio = clampedW / Math.max(1, rect.width);
-        applyPaneSizes();
-      }
+    setupDragSplitter(horizontalSplitter, "y", (e) => {
+      const rect = outputPane.getBoundingClientRect();
+      const topH = Math.max(120, Math.min(rect.height - 135, e.clientY - rect.top));
+      outputSection.style.flex = `0 0 ${topH}px`;
+      batchSection.style.flex = "1 1 0";
     });
 
-    document.addEventListener("mouseup", () => {
-      if (!dragMode) return;
-      dragMode = null;
-      pdfResizer.classList.remove("dragging");
-      paneResizer.classList.remove("dragging");
-      if (dragOverlay) {
-        dragOverlay.remove();
-        dragOverlay = null;
-      }
-    });
-
-    window.addEventListener("resize", applyPaneSizes);
-
-    // Elements
-    const cCodeInput = document.getElementById("cCodeInput");
-    const syntaxHighlightLayer = document.getElementById("syntaxHighlightLayer");
-    const lineHighlightBackdrop = document.getElementById("lineHighlightBackdrop");
-    const lineNumbersEl = document.getElementById("lineNumbers");
-    const cursorPosLabel = document.getElementById("cursorPosLabel");
-    const errorLineBadge = document.getElementById("errorLineBadge");
-    const execMetaLabel = document.getElementById("execMetaLabel");
-    const copyOutputBtn = document.getElementById("copyOutputBtn");
-    const editorLangLabel = document.getElementById("editorLangLabel");
-
-    const openFileBtn = document.getElementById("openFileBtn");
-    const saveFileBtn = document.getElementById("saveFileBtn");
-    const filePickerInput = document.getElementById("filePickerInput");
-
-    const runCBtn = document.getElementById("runCBtn");
-    const stopRunBtn = document.getElementById("stopRunBtn");
-    const checkSyntaxBtn = document.getElementById("checkSyntaxBtn");
-    const sendEofBtn = document.getElementById("sendEofBtn");
-    const runBatchBtn = document.getElementById("runBatchBtn");
-    const clearRunnerBtn = document.getElementById("clearRunnerBtn");
-    const outputSurface = document.getElementById("outputSurface");
-    const cOutputText = document.getElementById("cOutputText");
-    const inlineInputBar = document.getElementById("inlineInputBar");
-    const inlineStdinInput = document.getElementById("inlineStdinInput");
-    const customTestInput = document.getElementById("customTestInput");
-    const expectedTestOutput = document.getElementById("expectedTestOutput");
-    const batchVerdictBadge = document.getElementById("batchVerdictBadge");
-    const historyListEl = document.getElementById("historyList");
-    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-    const systemInfoBox = document.getElementById("systemInfoBox");
-
-    const autocompletePopup = document.getElementById("autocompletePopup");
-
-    const langSelect = document.getElementById("langSelect");
-    const flagWall = document.getElementById("flagWall");
-    const flagO2 = document.getElementById("flagO2");
-    const flagWerror = document.getElementById("flagWerror");
-    const flagLm = document.getElementById("flagLm");
-    const stdSelect = document.getElementById("stdSelect");
-    const snippetSelect = document.getElementById("snippetSelect");
-    const formatCodeBtn = document.getElementById("formatCodeBtn");
-
-    const findToggleBtn = document.getElementById("findToggleBtn");
-    const findReplaceBar = document.getElementById("findReplaceBar");
-    const findInput = document.getElementById("findInput");
-    const replaceInput = document.getElementById("replaceInput");
-    const findNextBtn = document.getElementById("findNextBtn");
-    const replaceOneBtn = document.getElementById("replaceOneBtn");
-    const replaceAllBtn = document.getElementById("replaceAllBtn");
-    const findCountLabel = document.getElementById("findCountLabel");
-    const closeFindBtn = document.getElementById("closeFindBtn");
-
-    const tabsList = document.getElementById("tabsList");
-    const addTabBtn = document.getElementById("addTabBtn");
-
+    // Font Size Zoom
     let editorFontSize = parseInt(localStorage.getItem("akshay_ide_font_px") || "15", 10);
     if (isNaN(editorFontSize) || editorFontSize < 12 || editorFontSize > 24) editorFontSize = 15;
 
@@ -852,13 +716,14 @@
     zoomOutBtn.addEventListener("click", () => applyEditorFontSize(editorFontSize - 1));
     zoomResetBtn.addEventListener("click", () => applyEditorFontSize(15));
 
+    // Presets
     const TEST_PRESETS = {
       sample1: "5\n10 20 30 40 50\n",
       sample2: "3\n7 -2 14\n",
       edge: "1\n0\n",
     };
 
-    document.querySelectorAll(".preset-chip").forEach((chip) => {
+    document.querySelectorAll(".preset-btn").forEach((chip) => {
       chip.addEventListener("click", () => {
         const key = chip.getAttribute("data-preset");
         if (TEST_PRESETS[key] !== undefined) {
@@ -871,7 +736,6 @@
     function replaceEditorRange(start, end, text, cursorPos = null) {
       cCodeInput.focus();
       cCodeInput.setSelectionRange(start, end);
-
       let applied = false;
       try {
         if (typeof document.execCommand === "function") {
@@ -880,16 +744,13 @@
       } catch (_) {
         applied = false;
       }
-
       if (!applied) {
         cCodeInput.setRangeText(text, start, end, "end");
       }
-
       if (typeof cursorPos === "number") {
         const clamped = Math.max(0, Math.min(cursorPos, cCodeInput.value.length));
         cCodeInput.setSelectionRange(clamped, clamped);
       }
-
       syncEditorVisuals(false);
     }
 
@@ -975,9 +836,7 @@ int main() {
         const opt = document.createElement("option");
         opt.value = item.value;
         opt.textContent = item.label;
-        if (preferredStd ? item.value === preferredStd : idx === 0) {
-          opt.selected = true;
-        }
+        if (preferredStd ? item.value === preferredStd : idx === 0) opt.selected = true;
         stdSelect.appendChild(opt);
       });
     }
@@ -999,6 +858,7 @@ int main() {
       focusCodeEditor();
     });
 
+    // File Tabs
     let tabs = [];
     let activeTabId = null;
     let errorLineNumber = null;
@@ -1008,10 +868,7 @@ int main() {
       try {
         const saved = JSON.parse(localStorage.getItem("akshay_c_tabs_v1") || "null");
         if (Array.isArray(saved) && saved.length > 0) {
-          tabs = saved.map((t) => ({
-            ...t,
-            lang: t.lang || detectLangFromFilename(t.name),
-          }));
+          tabs = saved.map((t) => ({ ...t, lang: t.lang || detectLangFromFilename(t.name) }));
           activeTabId = localStorage.getItem("akshay_c_active_tab_v1") || tabs[0].id;
           if (!tabs.some((t) => t.id === activeTabId)) activeTabId = tabs[0].id;
           return;
@@ -1031,12 +888,16 @@ int main() {
         current.code = cCodeInput.value;
         current.lang = langSelect.value;
       }
-      localStorage.setItem("akshay_c_tabs_v1", JSON.stringify(tabs));
-      localStorage.setItem("akshay_c_active_tab_v1", activeTabId);
+      try {
+        localStorage.setItem("akshay_c_tabs_v1", JSON.stringify(tabs));
+        localStorage.setItem("akshay_c_active_tab_v1", activeTabId);
+      } catch (_) {
+        // Ignore storage quota errors on very large files
+      }
       if (showFeedback) {
-        execMetaLabel.textContent = "Saved";
+        setExecStatus("Saved", "success");
         setTimeout(() => {
-          if (execMetaLabel.textContent === "Saved") execMetaLabel.textContent = "Ready";
+          if (execMetaLabel.textContent === "Saved") setExecStatus("Ready");
         }, 1000);
       }
     }
@@ -1044,21 +905,21 @@ int main() {
     function renderTabs() {
       tabsList.innerHTML = "";
       tabs.forEach((tab) => {
-        const wrap = document.createElement("div");
-        wrap.className = "tab-chip" + (tab.id === activeTabId ? " active" : "");
+        const chip = document.createElement("div");
+        chip.className = "tab-item" + (tab.id === activeTabId ? " active" : "");
+        chip.setAttribute("role", "tab");
+        chip.setAttribute("aria-selected", tab.id === activeTabId ? "true" : "false");
+        chip.title = "Click to switch (Double-click to rename; .cpp uses C++)";
 
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "tab-btn";
-        btn.textContent = tab.name;
-        btn.title = "Switch tab (Double-click to rename; .cpp uses C++)";
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = tab.name;
+        chip.appendChild(labelSpan);
 
-        btn.addEventListener("click", () => {
+        chip.addEventListener("click", () => {
           saveTabs();
           activeTabId = tab.id;
           cCodeInput.value = tab.code;
-          const tabLang = tab.lang || detectLangFromFilename(tab.name);
-          applyLanguageUI(tabLang);
+          applyLanguageUI(tab.lang || detectLangFromFilename(tab.name));
           clearErrorMarker();
           localStorage.setItem("akshay_c_active_tab_v1", activeTabId);
           renderTabs();
@@ -1067,7 +928,7 @@ int main() {
           focusCodeEditor();
         });
 
-        btn.addEventListener("dblclick", (e) => {
+        chip.addEventListener("dblclick", (e) => {
           e.stopPropagation();
           const nextName = prompt("Rename file tab (.c ya .cpp):", tab.name);
           if (nextName && nextName.trim()) {
@@ -1077,22 +938,19 @@ int main() {
             }
             tab.name = clean;
             tab.lang = detectLangFromFilename(clean);
-            if (tab.id === activeTabId) {
-              applyLanguageUI(tab.lang);
-            }
+            if (tab.id === activeTabId) applyLanguageUI(tab.lang);
             saveTabs();
             renderTabs();
           }
         });
 
-        wrap.appendChild(btn);
-
         if (tabs.length > 1) {
           const closeBtn = document.createElement("button");
           closeBtn.type = "button";
-          closeBtn.className = "tab-close-btn";
+          closeBtn.className = "tab-close";
           closeBtn.innerHTML = "&times;";
           closeBtn.title = "Close tab";
+          closeBtn.setAttribute("aria-label", `Close ${tab.name}`);
           closeBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             const idx = tabs.findIndex((t) => t.id === tab.id);
@@ -1109,10 +967,10 @@ int main() {
             syncEditorVisuals(false);
             focusCodeEditor();
           });
-          wrap.appendChild(closeBtn);
+          chip.appendChild(closeBtn);
         }
 
-        tabsList.appendChild(wrap);
+        tabsList.appendChild(chip);
       });
     }
 
@@ -1139,31 +997,48 @@ int main() {
     });
 
     openFileBtn.addEventListener("click", () => {
-      filePickerInput.value = "";
       filePickerInput.click();
     });
 
-    filePickerInput.addEventListener("change", async (e) => {
+    filePickerInput.addEventListener("change", (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-      const content = await file.text();
-      saveTabs();
-      const detectedLang = detectLangFromFilename(file.name);
-      const newTab = {
-        id: "tab_" + Date.now(),
-        name: file.name,
-        lang: detectedLang,
-        code: content,
+      if (file.size > 2 * 1024 * 1024) {
+        e.target.value = "";
+        showToast("File is larger than 2 MB limit");
+        return;
+      }
+      const fileName = file.name;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const content = String(reader.result || "").replace(/\r\n/g, "\n");
+        e.target.value = "";
+        requestAnimationFrame(() => {
+          saveTabs();
+          const detectedLang = detectLangFromFilename(fileName);
+          const newTab = {
+            id: "tab_" + Date.now(),
+            name: fileName,
+            lang: detectedLang,
+            code: content,
+          };
+          tabs.push(newTab);
+          activeTabId = newTab.id;
+          cCodeInput.value = content;
+          applyLanguageUI(detectedLang);
+          clearErrorMarker();
+          saveTabs();
+          renderTabs();
+          syncEditorVisuals(false);
+          focusCodeEditor();
+          showToast(`Opened ${fileName}`);
+        });
       };
-      tabs.push(newTab);
-      activeTabId = newTab.id;
-      cCodeInput.value = content;
-      applyLanguageUI(detectedLang);
-      clearErrorMarker();
-      saveTabs();
-      renderTabs();
-      syncEditorVisuals(false);
-      focusCodeEditor();
+      reader.onerror = () => {
+        e.target.value = "";
+        showToast("Failed to read file");
+      };
+      reader.readAsText(file);
     });
 
     saveFileBtn.addEventListener("click", () => {
@@ -1180,9 +1055,10 @@ int main() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      execMetaLabel.textContent = `Exported ${filename}`;
+      showToast(`Exported ${filename}`);
     });
 
+    // Syntax Highlighting (Preserved Token Colors)
     const C_CPP_KW_SET = new Set([
       "auto","break","case","char","const","continue","default","do","double",
       "else","enum","extern","float","for","goto","if","inline","int","long",
@@ -1206,20 +1082,15 @@ int main() {
     ]);
 
     function escapeHtml(str) {
-      return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
     function highlightStringLiteral(strToken) {
       const innerRegex =
         /(%[\+\-#0 ]*\d*(?:\.\d+)?(?:hh|h|ll|l|j|z|t|L)?[diuoxXfFeEgGaAcsSpn%])|(\\(?::[abefnrtv\\'"?]|x[0-9a-fA-F]+|[0-7]{1,3}))/g;
-
       let result = "";
       let last = 0;
       let m;
-
       while ((m = innerRegex.exec(strToken)) !== null) {
         if (m.index > last) {
           result += `<span class="tok-string">${escapeHtml(strToken.slice(last, m.index))}</span>`;
@@ -1229,11 +1100,9 @@ int main() {
         result += `<span class="${cls}">${escapeHtml(part)}</span>`;
         last = innerRegex.lastIndex;
       }
-
       if (last < strToken.length) {
         result += `<span class="tok-string">${escapeHtml(strToken.slice(last))}</span>`;
       }
-
       return result;
     }
 
@@ -1245,15 +1114,14 @@ int main() {
     }
 
     function findMatchingBracketIndex(code, cursorPos) {
+      if (code.length > 120000) return null;
       const openMap = { "{": "}", "(": ")", "[": "]" };
       const closeMap = { "}": "{", ")": "(", "]": "[" };
       const masked = stripStringsAndCommentsKeepLength(code);
-
       const candidates = [cursorPos, cursorPos - 1];
       for (const idx of candidates) {
         if (idx < 0 || idx >= masked.length) continue;
         const ch = masked[idx];
-
         if (openMap[ch]) {
           const target = openMap[ch];
           let depth = 0;
@@ -1280,20 +1148,20 @@ int main() {
     }
 
     function highlightCCode(code, bracketPair) {
+      if (code.length > 120000) {
+        return escapeHtml(code) + "\n";
+      }
       const matchedSet = new Set(bracketPair || []);
-
       const tokenRegex =
         /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|^\s*#\s*[a-zA-Z_][a-zA-Z0-9_]*\s*(?:<[^>]*>|"(?:[^"\\]|\\.)*")?|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?)(?:[fFlLuU]*)\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b|&(?!=&)|[\{\}\(\)\[\]])/gm;
 
       let out = "";
       let lastIndex = 0;
       let match;
-
       while ((match = tokenRegex.exec(code)) !== null) {
         if (match.index > lastIndex) {
           out += escapeHtml(code.slice(lastIndex, match.index));
         }
-
         const tok = match[0];
         const escaped = escapeHtml(tok);
 
@@ -1318,47 +1186,48 @@ int main() {
         } else {
           out += escaped;
         }
-
         lastIndex = tokenRegex.lastIndex;
       }
-
       if (lastIndex < code.length) {
         out += escapeHtml(code.slice(lastIndex));
       }
-
       return out + "\n";
     }
 
-    function renderLineBackdrop(lineCount, activeLine) {
-      let html = "";
-      for (let i = 1; i <= lineCount; i++) {
-        let cls = "backdrop-line";
-        if (errorLineNumber === i) {
-          cls += errorLineKind === "warning" ? " line-warning" : " line-error";
-        } else if (activeLine === i) {
-          cls += " line-active";
-        }
-        html += `<div class="${cls}"></div>`;
+    function updateLineHighlights(activeLine) {
+      const lineH = editorFontSize * 1.5;
+      const padTop = 12;
+      const scrollTop = cCodeInput.scrollTop;
+
+      activeLineHighlight.style.top = `${padTop + (activeLine - 1) * lineH - scrollTop}px`;
+      if (errorLineNumber) {
+        errorLineHighlight.classList.remove("hidden");
+        errorLineHighlight.className = "line-highlight " + (errorLineKind === "warning" ? "line-warning" : "line-error");
+        errorLineHighlight.style.top = `${padTop + (errorLineNumber - 1) * lineH - scrollTop}px`;
+      } else {
+        errorLineHighlight.classList.add("hidden");
       }
-      lineHighlightBackdrop.innerHTML = html;
     }
 
     function updateLineNumbersAndCursor() {
       const val = cCodeInput.value;
-      const lines = val.split("\n");
-      const lineCount = lines.length;
-
-      let numsHtml = "";
-      for (let i = 1; i <= lineCount; i++) {
-        const errCls =
-          errorLineNumber === i
-            ? errorLineKind === "warning"
-              ? "ln-warn"
-              : "ln-err"
-            : "";
-        numsHtml += errCls ? `<span class="${errCls}">${i}</span>\n` : `${i}\n`;
+      let lineCount = 1;
+      for (let i = 0; i < val.length; i++) {
+        if (val.charCodeAt(i) === 10) lineCount++;
       }
-      lineNumbersEl.innerHTML = numsHtml;
+
+      if (!errorLineNumber) {
+        const nums = new Array(lineCount);
+        for (let i = 0; i < lineCount; i++) nums[i] = i + 1;
+        lineNumbersEl.textContent = nums.join("\n") + "\n";
+      } else {
+        let numsHtml = "";
+        for (let i = 1; i <= lineCount; i++) {
+          const errCls = errorLineNumber === i ? (errorLineKind === "warning" ? "ln-warn" : "ln-err") : "";
+          numsHtml += errCls ? `<span class="${errCls}">${i}</span>\n` : `${i}\n`;
+        }
+        lineNumbersEl.innerHTML = numsHtml;
+      }
 
       const pos = cCodeInput.selectionStart || 0;
       const before = val.slice(0, pos).split("\n");
@@ -1366,7 +1235,7 @@ int main() {
       const col = before[before.length - 1].length + 1;
       cursorPosLabel.textContent = `Ln ${ln}, Col ${col}`;
 
-      renderLineBackdrop(lineCount, ln);
+      updateLineHighlights(ln);
     }
 
     function jumpToLine(lineNum) {
@@ -1391,7 +1260,7 @@ int main() {
     function clearErrorMarker() {
       errorLineNumber = null;
       errorLineKind = null;
-      errorLineBadge.classList.add("hidden-badge");
+      errorLineBadge.classList.add("hidden");
       errorLineBadge.textContent = "";
     }
 
@@ -1400,25 +1269,22 @@ int main() {
         clearErrorMarker();
         return;
       }
-
       const errMatch = outputText.match(/^(?:.*?:)?program\.(?:c|cpp):(\d+):\d+:\s*(?:fatal error|error):/im);
       if (errMatch) {
         errorLineNumber = parseInt(errMatch[1], 10);
         errorLineKind = "error";
         errorLineBadge.textContent = `Error at Ln ${errorLineNumber} (Jump)`;
-        errorLineBadge.className = "error-badge badge-error";
+        errorLineBadge.className = "error-jump-pill";
         return;
       }
-
       const warnMatch = outputText.match(/^(?:.*?:)?program\.(?:c|cpp):(\d+):\d+:\s*warning:/im);
       if (warnMatch) {
         errorLineNumber = parseInt(warnMatch[1], 10);
         errorLineKind = "warning";
         errorLineBadge.textContent = `Warning at Ln ${errorLineNumber} (Jump)`;
-        errorLineBadge.className = "error-badge badge-warning";
+        errorLineBadge.className = "error-jump-pill warn";
         return;
       }
-
       clearErrorMarker();
     }
 
@@ -1428,12 +1294,10 @@ int main() {
       syntaxHighlightLayer.innerHTML = highlightCCode(cCodeInput.value, bracketPair);
       syntaxHighlightLayer.scrollTop = cCodeInput.scrollTop;
       syntaxHighlightLayer.scrollLeft = cCodeInput.scrollLeft;
-      lineHighlightBackdrop.scrollTop = cCodeInput.scrollTop;
-      lineHighlightBackdrop.scrollLeft = cCodeInput.scrollLeft;
       lineNumbersEl.scrollTop = cCodeInput.scrollTop;
       updateLineNumbersAndCursor();
       if (shouldSave) saveTabs();
-      if (findReplaceBar && !findReplaceBar.classList.contains("hidden-bar")) {
+      if (findReplaceBar && !findReplaceBar.classList.contains("hidden")) {
         updateFindMatchCount();
       }
     }
@@ -1441,9 +1305,13 @@ int main() {
     cCodeInput.addEventListener("scroll", () => {
       syntaxHighlightLayer.scrollTop = cCodeInput.scrollTop;
       syntaxHighlightLayer.scrollLeft = cCodeInput.scrollLeft;
-      lineHighlightBackdrop.scrollTop = cCodeInput.scrollTop;
-      lineHighlightBackdrop.scrollLeft = cCodeInput.scrollLeft;
       lineNumbersEl.scrollTop = cCodeInput.scrollTop;
+      const pos = cCodeInput.selectionStart || 0;
+      let ln = 1;
+      for (let i = 0; i < pos; i++) {
+        if (cCodeInput.value.charCodeAt(i) === 10) ln++;
+      }
+      updateLineHighlights(ln);
     });
 
     cCodeInput.addEventListener("click", () => {
@@ -1456,7 +1324,6 @@ int main() {
       const lines = raw.split("\n");
       let indent = 0;
       const formatted = [];
-
       for (let i = 0; i < lines.length; i++) {
         const trimmed = lines[i].trim();
         const maskedTrimmed = (maskedLines[i] || "").trim();
@@ -1464,21 +1331,15 @@ int main() {
           formatted.push("");
           continue;
         }
-
-        if (maskedTrimmed.startsWith("}")) {
-          indent = Math.max(0, indent - 1);
-        }
-
+        if (maskedTrimmed.startsWith("}")) indent = Math.max(0, indent - 1);
         const isAccessSpec = /^(public|private|protected)\s*:/.test(trimmed);
         const currentIndent = isAccessSpec ? Math.max(0, indent - 1) : indent;
         formatted.push("    ".repeat(currentIndent) + trimmed);
-
         const openBraces = (maskedTrimmed.match(/\{/g) || []).length;
         const closeBraces = (maskedTrimmed.match(/\}/g) || []).length;
         const adjustedClose = maskedTrimmed.startsWith("}") ? Math.max(0, closeBraces - 1) : closeBraces;
         indent = Math.max(0, indent + openBraces - adjustedClose);
       }
-
       return formatted.join("\n");
     }
 
@@ -1491,8 +1352,8 @@ int main() {
     snippetSelect.addEventListener("change", () => {
       const key = snippetSelect.value;
       if (!key || !SNIPPETS[key]) return;
-      if (key.startsWith("cpp") || key.startsWith("dsa")) {
-        if (langSelect.value !== "cpp") applyLanguageUI("cpp");
+      if ((key.startsWith("cpp") || key.startsWith("dsa")) && langSelect.value !== "cpp") {
+        applyLanguageUI("cpp");
       }
       const start = cCodeInput.selectionStart;
       const end = cCodeInput.selectionEnd;
@@ -1503,8 +1364,9 @@ int main() {
       focusCodeEditor();
     });
 
+    // Find & Replace
     function openFindBar(focusReplace = false) {
-      findReplaceBar.classList.remove("hidden-bar");
+      findReplaceBar.classList.remove("hidden");
       updateFindMatchCount();
       requestAnimationFrame(() => {
         if (focusReplace) replaceInput.focus();
@@ -1513,7 +1375,7 @@ int main() {
     }
 
     function closeFindBar() {
-      findReplaceBar.classList.add("hidden-bar");
+      findReplaceBar.classList.add("hidden");
       focusCodeEditor();
     }
 
@@ -1544,7 +1406,7 @@ int main() {
     }
 
     findToggleBtn.addEventListener("click", () => {
-      if (findReplaceBar.classList.contains("hidden-bar")) openFindBar(false);
+      if (findReplaceBar.classList.contains("hidden")) openFindBar(false);
       else closeFindBar();
     });
 
@@ -1561,16 +1423,13 @@ int main() {
     });
 
     findNextBtn.addEventListener("click", findNextMatch);
-
     replaceOneBtn.addEventListener("click", () => {
       const q = findInput.value;
       if (!q) return;
       const rep = replaceInput.value;
       const selStart = cCodeInput.selectionStart;
       const selEnd = cCodeInput.selectionEnd;
-      const selected = cCodeInput.value.slice(selStart, selEnd);
-
-      if (selected === q) {
+      if (cCodeInput.value.slice(selStart, selEnd) === q) {
         replaceEditorRange(selStart, selEnd, rep, selStart + rep.length);
         saveTabs();
       }
@@ -1582,12 +1441,12 @@ int main() {
       if (!q) return;
       const rep = replaceInput.value;
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const updated = cCodeInput.value.replace(new RegExp(escaped, "g"), rep);
-      setEditorFullText(updated);
+      setEditorFullText(cCodeInput.value.replace(new RegExp(escaped, "g"), rep));
       saveTabs();
       focusCodeEditor();
     });
 
+    // Autocomplete
     const C_CPP_KEYWORDS = [
       { label: "int", insertText: "int ", kind: "keyword" },
       { label: "float", insertText: "float ", kind: "keyword" },
@@ -1660,11 +1519,11 @@ int main() {
     let currentTokenRange = { start: 0, end: 0, text: "" };
 
     function isPopupOpen() {
-      return !autocompletePopup.classList.contains("hidden-popup") && currentSuggestions.length > 0;
+      return !autocompletePopup.classList.contains("hidden") && currentSuggestions.length > 0;
     }
 
     function hideAutocomplete() {
-      autocompletePopup.classList.add("hidden-popup");
+      autocompletePopup.classList.add("hidden");
       autocompletePopup.innerHTML = "";
       currentSuggestions = [];
       selectedSuggestionIndex = 0;
@@ -1673,18 +1532,13 @@ int main() {
     function getCurrentWordToken(textarea) {
       const pos = textarea.selectionStart;
       const beforeCursor = textarea.value.slice(0, pos);
-
       const includeMatch = beforeCursor.match(/(#include\s*<[^>]*|#include[^\s]*)$/);
       if (includeMatch) {
-        const tokenText = includeMatch[1];
-        return { start: pos - tokenText.length, end: pos, text: tokenText };
+        return { start: pos - includeMatch[1].length, end: pos, text: includeMatch[1] };
       }
-
       const wordMatch = beforeCursor.match(/([A-Za-z_][A-Za-z0-9_]*)$/);
       if (!wordMatch) return { start: pos, end: pos, text: "" };
-
-      const tokenText = wordMatch[1];
-      return { start: pos - tokenText.length, end: pos, text: tokenText };
+      return { start: pos - wordMatch[1].length, end: pos, text: wordMatch[1] };
     }
 
     function extractUserIdentifiers(code, currentTokenStart, currentTokenEnd) {
@@ -1692,22 +1546,18 @@ int main() {
         code.slice(0, currentTokenStart) +
         " ".repeat(Math.max(0, currentTokenEnd - currentTokenStart)) +
         code.slice(currentTokenEnd);
-
-      const withoutStrings = cleaned.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, " ");
-      const withoutComments = withoutStrings
+      const withoutComments = cleaned
+        .replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, " ")
         .replace(/\/\/.*$/gm, " ")
         .replace(/\/\*[\s\S]*?\*\//g, " ");
-
       const keywordNames = new Set(
         C_CPP_KEYWORDS.map((item) => item.label.toLowerCase()).concat([
           "main", "printf", "scanf", "cout", "cin", "endl", "std", "include", "stdio", "iostream", "h"
         ])
       );
-
       const matches = withoutComments.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g) || [];
       const seen = new Set();
       const userItems = [];
-
       for (const id of matches) {
         const lower = id.toLowerCase();
         if (!seen.has(lower) && !keywordNames.has(lower)) {
@@ -1715,7 +1565,6 @@ int main() {
           userItems.push({ label: id, insertText: id, kind: "var" });
         }
       }
-
       return userItems;
     }
 
@@ -1727,25 +1576,20 @@ int main() {
         li.setAttribute("role", "option");
 
         const labelSpan = document.createElement("span");
-        labelSpan.className = "suggestion-label";
         labelSpan.textContent = item.label;
-
         const kindSpan = document.createElement("span");
         kindSpan.className = "suggestion-kind";
         kindSpan.textContent = item.kind;
 
         li.appendChild(labelSpan);
         li.appendChild(kindSpan);
-
         li.addEventListener("mousedown", (e) => {
           e.preventDefault();
           applySuggestion(item);
         });
-
         autocompletePopup.appendChild(li);
       });
-
-      autocompletePopup.classList.remove("hidden-popup");
+      autocompletePopup.classList.remove("hidden");
       const activeEl = autocompletePopup.children[selectedSuggestionIndex];
       if (activeEl) activeEl.scrollIntoView({ block: "nearest" });
     }
@@ -1753,25 +1597,17 @@ int main() {
     function updateAutocompleteSuggestions() {
       const token = getCurrentWordToken(cCodeInput);
       currentTokenRange = token;
-
       if (!token.text || token.text.length < 1) {
         hideAutocomplete();
         return;
       }
-
       const query = token.text.toLowerCase();
       const userVars = extractUserIdentifiers(cCodeInput.value, token.start, token.end);
       const pool = [...userVars, ...C_CPP_KEYWORDS];
-
-      const startsWithMatches = pool.filter((item) =>
-        item.label.toLowerCase().startsWith(query)
-      );
+      const startsWithMatches = pool.filter((item) => item.label.toLowerCase().startsWith(query));
       const includesMatches = pool.filter(
-        (item) =>
-          !item.label.toLowerCase().startsWith(query) &&
-          item.label.toLowerCase().includes(query)
+        (item) => !item.label.toLowerCase().startsWith(query) && item.label.toLowerCase().includes(query)
       );
-
       const combined = [...startsWithMatches, ...includesMatches].slice(0, 8);
       if (
         combined.length === 0 ||
@@ -1782,7 +1618,6 @@ int main() {
         hideAutocomplete();
         return;
       }
-
       currentSuggestions = combined;
       selectedSuggestionIndex = 0;
       renderAutocompletePopup();
@@ -1794,7 +1629,6 @@ int main() {
       const targetPos = suggestion.cursorOffset
         ? currentTokenRange.start + inserted.length + suggestion.cursorOffset
         : currentTokenRange.start + inserted.length;
-
       hideAutocomplete();
       replaceEditorRange(currentTokenRange.start, currentTokenRange.end, inserted, targetPos);
       saveTabs();
@@ -1819,7 +1653,6 @@ int main() {
         requestAnimationFrame(updateLineNumbersAndCursor);
         return;
       }
-
       if (isPopupOpen()) {
         if (e.key === "ArrowDown") {
           e.preventDefault();
@@ -1829,8 +1662,7 @@ int main() {
         }
         if (e.key === "ArrowUp") {
           e.preventDefault();
-          selectedSuggestionIndex =
-            (selectedSuggestionIndex - 1 + currentSuggestions.length) % currentSuggestions.length;
+          selectedSuggestionIndex = (selectedSuggestionIndex - 1 + currentSuggestions.length) % currentSuggestions.length;
           renderAutocompletePopup();
           return;
         }
@@ -1845,16 +1677,7 @@ int main() {
           return;
         }
       }
-
-      if (
-        e.key === "ArrowLeft" ||
-        e.key === "ArrowRight" ||
-        e.key === "ArrowUp" ||
-        e.key === "ArrowDown" ||
-        e.key === "Home" ||
-        e.key === "End" ||
-        e.key === "Escape"
-      ) {
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "Escape"].includes(e.key)) {
         hideAutocomplete();
         requestAnimationFrame(updateLineNumbersAndCursor);
         if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
@@ -1883,15 +1706,11 @@ int main() {
         const lineStart = val.lastIndexOf("\n", start - 1) + 1;
         const lineEndIdx = val.indexOf("\n", end);
         const lineEnd = lineEndIdx === -1 ? val.length : lineEndIdx;
-        const block = val.slice(lineStart, lineEnd);
-        const lines = block.split("\n");
+        const lines = val.slice(lineStart, lineEnd).split("\n");
         const allCommented = lines.every((l) => l.trimStart().startsWith("//"));
         const updated = lines
-          .map((l) =>
-            allCommented ? l.replace(/^(\s*)\/\/\s?/, "$1") : "// " + l
-          )
+          .map((l) => (allCommented ? l.replace(/^(\s*)\/\/\s?/, "$1") : "// " + l))
           .join("\n");
-
         replaceEditorRange(lineStart, lineEnd, updated, lineStart + updated.length);
         saveTabs();
         return;
@@ -1903,8 +1722,7 @@ int main() {
         const lineEndIdx = val.indexOf("\n", start);
         const lineEnd = lineEndIdx === -1 ? val.length : lineEndIdx;
         const currentLine = val.slice(lineStart, lineEnd);
-        const insertion = "\n" + currentLine;
-        replaceEditorRange(lineEnd, lineEnd, insertion, lineEnd + 1 + currentLine.length);
+        replaceEditorRange(lineEnd, lineEnd, "\n" + currentLine, lineEnd + 1 + currentLine.length);
         saveTabs();
         return;
       }
@@ -1915,10 +1733,7 @@ int main() {
         const lineIdx = val.slice(0, start).split("\n").length - 1;
         const targetIdx = e.key === "ArrowUp" ? lineIdx - 1 : lineIdx + 1;
         if (targetIdx < 0 || targetIdx >= lines.length) return;
-
-        const temp = lines[lineIdx];
-        lines[lineIdx] = lines[targetIdx];
-        lines[targetIdx] = temp;
+        [lines[lineIdx], lines[targetIdx]] = [lines[targetIdx], lines[lineIdx]];
         setEditorFullText(lines.join("\n"));
         saveTabs();
         return;
@@ -1934,16 +1749,13 @@ int main() {
       if (e.key === "Enter") {
         e.preventDefault();
         const lineStart = val.lastIndexOf("\n", start - 1) + 1;
-        const currentLineBeforeCursor = val.slice(lineStart, start);
-        const baseIndentMatch = currentLineBeforeCursor.match(/^\s*/);
+        const baseIndentMatch = val.slice(lineStart, start).match(/^\s*/);
         const baseIndent = baseIndentMatch ? baseIndentMatch[0] : "";
         const charBefore = val[start - 1];
         const charAfter = val[end];
-
         if (charBefore === "{" && charAfter === "}") {
           const innerIndent = baseIndent + "    ";
-          const insertion = `\n${innerIndent}\n${baseIndent}`;
-          replaceEditorRange(start, end, insertion, start + 1 + innerIndent.length);
+          replaceEditorRange(start, end, `\n${innerIndent}\n${baseIndent}`, start + 1 + innerIndent.length);
         } else {
           const extraIndent = charBefore === "{" ? "    " : "";
           const insertion = `\n${baseIndent}${extraIndent}`;
@@ -1955,8 +1767,7 @@ int main() {
 
       if (PAIRS[e.key] && start === end) {
         const closeChar = PAIRS[e.key];
-        const nextChar = val[start];
-        if ((e.key === '"' || e.key === "'") && nextChar === e.key) {
+        if ((e.key === '"' || e.key === "'") && val[start] === e.key) {
           e.preventDefault();
           cCodeInput.setSelectionRange(start + 1, start + 1);
           updateLineNumbersAndCursor();
@@ -1965,11 +1776,21 @@ int main() {
         e.preventDefault();
         replaceEditorRange(start, end, e.key + closeChar, start + 1);
         saveTabs();
-        return;
       }
     });
 
     document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (!confirmModal.classList.contains("hidden")) {
+          confirmModal.classList.add("hidden");
+          return;
+        }
+        if (workspaceDrawer.classList.contains("open")) {
+          closeDrawer();
+          return;
+        }
+        closeAllPopovers();
+      }
       if (e.key === "F9" || ((e.ctrlKey || e.metaKey) && e.key === "Enter")) {
         e.preventDefault();
         triggerRunFlow(false);
@@ -1998,17 +1819,17 @@ int main() {
       }
     });
 
+    // Toast, Status, History & System Info
     let activeSessionId = null;
     let pollTimer = null;
     let activeInlineInput = null;
     let runStartTime = 0;
 
     function showToast(message, actionLabel = "", actionFn = null) {
-      const container = document.getElementById("toastContainer");
+      const container = $("toastContainer");
       if (!container) return;
       const item = document.createElement("div");
-      item.className = "toast-item";
-
+      item.className = "toast";
       const span = document.createElement("span");
       span.textContent = message;
       item.appendChild(span);
@@ -2016,7 +1837,7 @@ int main() {
       if (actionLabel && typeof actionFn === "function") {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "toast-action-btn";
+        btn.className = "btn btn-xs btn-accent";
         btn.textContent = actionLabel;
         btn.addEventListener("click", () => {
           actionFn();
@@ -2024,11 +1845,8 @@ int main() {
         });
         item.appendChild(btn);
       }
-
       container.appendChild(item);
-      setTimeout(() => {
-        item.remove();
-      }, actionFn ? 5000 : 2200);
+      setTimeout(() => item.remove(), actionFn ? 5000 : 2200);
     }
 
     function formatBytes(bytes) {
@@ -2037,9 +1855,9 @@ int main() {
       return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     }
 
-    function setExecStatus(text, statusKind = "") {
+    function setExecStatus(text, statusKind = "idle") {
       execMetaLabel.textContent = text;
-      execMetaLabel.className = "meta-pill" + (statusKind ? ` status-${statusKind}` : "");
+      execMetaLabel.className = `status-badge status-${statusKind}`;
     }
 
     let runHistory = [];
@@ -2049,9 +1867,8 @@ int main() {
     } catch (_) {}
 
     function renderRunHistory() {
-      if (!historyListEl) return;
       if (!runHistory.length) {
-        historyListEl.innerHTML = '<p class="history-empty">No runs yet.</p>';
+        historyListEl.innerHTML = '<p class="empty-hint">No runs yet.</p>';
         return;
       }
       historyListEl.innerHTML = "";
@@ -2061,17 +1878,17 @@ int main() {
         card.title = "Click to restore this code";
 
         const top = document.createElement("div");
-        top.className = "history-item-top";
+        top.className = "history-top";
         const nameSpan = document.createElement("span");
         nameSpan.textContent = item.fileName || "main.c";
         const statusSpan = document.createElement("span");
         statusSpan.textContent = item.status;
-        statusSpan.style.color = item.ok ? "#4ade80" : "#f87171";
+        statusSpan.style.color = item.ok ? "var(--success)" : "var(--danger)";
         top.appendChild(nameSpan);
         top.appendChild(statusSpan);
 
         const meta = document.createElement("div");
-        meta.className = "history-item-meta";
+        meta.className = "history-meta";
         meta.textContent = `${item.time}${item.meta ? " \u2022 " + item.meta : ""}`;
 
         card.appendChild(top);
@@ -2080,6 +1897,7 @@ int main() {
           setEditorFullText(item.code || "");
           saveTabs();
           showToast(`Restored ${item.fileName || "code"} from ${item.time}`);
+          closeDrawer();
           focusCodeEditor();
         });
         historyListEl.appendChild(card);
@@ -2096,27 +1914,26 @@ int main() {
       renderRunHistory();
     }
 
-    if (clearHistoryBtn) {
-      clearHistoryBtn.addEventListener("click", () => {
-        runHistory = [];
-        localStorage.removeItem("akshay_c_history_v1");
-        renderRunHistory();
-      });
-    }
+    clearHistoryBtn.addEventListener("click", () => {
+      runHistory = [];
+      localStorage.removeItem("akshay_c_history_v1");
+      renderRunHistory();
+    });
 
     async function fetchSystemInfo() {
-      if (!systemInfoBox) return;
       try {
         const res = await fetch("/api/info");
         const info = await res.json();
         if (info.ok) {
+          $("offlineStatusPill").textContent = "Local Compiler Ready";
           systemInfoBox.innerHTML =
             `<strong>Compiler:</strong> ${escapeHtml(info.compiler)}<br />` +
             `<strong>Platform:</strong> ${escapeHtml(info.platform)}<br />` +
             `<strong>Python:</strong> ${escapeHtml(info.python)}<br />` +
-            `<strong>Status:</strong> Local Ready`;
+            `<strong>Status:</strong> Local Execution Ready`;
         }
       } catch (_) {
+        $("offlineStatusPill").textContent = "Server Offline";
         systemInfoBox.textContent = "Server offline";
       }
     }
@@ -2144,9 +1961,7 @@ int main() {
 
     async function parseJsonSafe(res) {
       const txt = await res.text();
-      if (!txt || !txt.trim()) {
-        throw new Error("Server returned empty response");
-      }
+      if (!txt || !txt.trim()) throw new Error("Server returned empty response");
       return JSON.parse(txt);
     }
 
@@ -2159,9 +1974,7 @@ int main() {
 
     function focusStdinInput() {
       requestAnimationFrame(() => {
-        if (activeInlineInput) {
-          activeInlineInput.focus();
-        }
+        if (activeInlineInput) activeInlineInput.focus();
       });
     }
 
@@ -2170,13 +1983,11 @@ int main() {
         activeInlineInput.remove();
         activeInlineInput = null;
       }
-      inlineInputBar.classList.add("hidden-bar");
-      inlineStdinInput.value = "";
     }
 
     function setInteractiveControlsVisible(active) {
-      stopRunBtn.classList.toggle("hidden-el", !active);
-      sendEofBtn.classList.toggle("hidden-el", !active);
+      stopRunBtn.classList.toggle("hidden", !active);
+      sendEofBtn.classList.toggle("hidden", !active);
     }
 
     function appendToOutputBox(text, cls = "") {
@@ -2194,13 +2005,11 @@ int main() {
         focusStdinInput();
         return;
       }
-
       const inp = document.createElement("input");
       inp.type = "text";
       inp.className = "inline-box-input";
       inp.autocomplete = "off";
       inp.spellcheck = false;
-
       inp.addEventListener("keydown", async (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
@@ -2214,30 +2023,25 @@ int main() {
           await sendEofSignal();
         }
       });
-
       cOutputText.appendChild(inp);
       activeInlineInput = inp;
       focusStdinInput();
       outputSurface.scrollTop = outputSurface.scrollHeight;
     }
 
-    function showInputBar() {
-      if (!activeSessionId) return;
-      ensureInlineInputInOutputBox();
-    }
-
     outputSurface.addEventListener("click", () => {
-      if (activeInlineInput) {
-        focusStdinInput();
-      }
+      if (activeInlineInput) focusStdinInput();
     });
 
     function getSelectedFlags() {
       const flags = [stdSelect.value];
       if (flagWall.checked) flags.push("-Wall");
-      if (flagO2 && flagO2.checked) flags.push("-O2");
-      if (flagWerror && flagWerror.checked) flags.push("-Werror");
+      if (flagO2.checked) flags.push("-O2");
+      if (flagWerror.checked) flags.push("-Werror");
       if (flagLm.checked) flags.push("-lm");
+      if (flagWextra.checked) flags.push("-Wextra");
+      if (flagWpedantic.checked) flags.push("-Wpedantic");
+      if (flagDebug.checked) flags.push("-g");
       return flags;
     }
 
@@ -2334,10 +2138,7 @@ int main() {
         const res = await fetch("/input", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            session_id: activeSessionId,
-            input: line,
-          }),
+          body: JSON.stringify({ session_id: activeSessionId, input: line }),
         });
         const data = await parseJsonSafe(res);
         if (data.output) {
@@ -2358,7 +2159,7 @@ int main() {
           completeSession(data.exit_code, data.duration_ms, data.memory_bytes, data.timed_out);
         } else {
           setExecStatus("Waiting for input", "running");
-          showInputBar();
+          ensureInlineInputInOutputBox();
         }
       } catch (err) {
         appendToOutputBox("\nConnection Error: Kya server chal raha hai? (" + err.message + ")");
@@ -2407,7 +2208,7 @@ int main() {
       saveTabs();
       clearErrorMarker();
       hideAutocomplete();
-      batchVerdictBadge.classList.add("hidden-el");
+      batchVerdictBadge.classList.add("hidden");
       cOutputText.innerHTML = "";
       checkSyntaxBtn.disabled = true;
       setExecStatus("Checking syntax...", "running");
@@ -2453,7 +2254,7 @@ int main() {
       saveTabs();
       clearErrorMarker();
       hideAutocomplete();
-      batchVerdictBadge.classList.add("hidden-el");
+      batchVerdictBadge.classList.add("hidden");
       cOutputText.innerHTML = "";
       runCBtn.disabled = true;
       runBatchBtn.disabled = true;
@@ -2489,8 +2290,7 @@ int main() {
               code: cCodeInput.value,
             });
           } else {
-            const outTxt = data.output || "(No output)";
-            renderCompilerOutputWithJump(outTxt);
+            renderCompilerOutputWithJump(data.output || "(No output)");
             detectCompilerLineFromOutput(data.warnings || data.output || "");
             const codeVal = data.exit_code !== undefined ? data.exit_code : 0;
             const mem = formatBytes(data.memory_bytes);
@@ -2501,15 +2301,13 @@ int main() {
               ok ? "success" : "error"
             );
 
-            // Check Expected Output if provided
-            const expectedRaw = expectedTestOutput ? expectedTestOutput.value : "";
+            const expectedRaw = expectedTestOutput.value;
             if (expectedRaw.trim().length > 0 && !data.timed_out) {
               const norm = (s) => s.replace(/\r\n/g, "\n").trimEnd();
               const actualNorm = norm(data.stdout !== undefined ? data.stdout : (data.output || ""));
-              const expNorm = norm(expectedRaw);
-              const passed = actualNorm === expNorm;
+              const passed = actualNorm === norm(expectedRaw);
               batchVerdictBadge.textContent = passed ? "PASS" : "FAIL";
-              batchVerdictBadge.className = "verdict-badge " + (passed ? "verdict-pass" : "verdict-fail");
+              batchVerdictBadge.className = "status-badge " + (passed ? "verdict-pass" : "verdict-fail");
             }
 
             recordRunHistory({
@@ -2543,7 +2341,6 @@ int main() {
             flags: getSelectedFlags(),
           }),
         });
-
         const data = await parseJsonSafe(res);
 
         if (!data.compile_ok) {
@@ -2584,12 +2381,11 @@ int main() {
         } else {
           setInteractiveControlsVisible(true);
           setExecStatus("Waiting for input", "running");
-          showInputBar();
+          ensureInlineInputInOutputBox();
           startSessionPolling();
         }
       } catch (err) {
-        cOutputText.textContent =
-          "Connection Error: Kya server chal raha hai? (" + err.message + ")";
+        cOutputText.textContent = "Connection Error: Kya server chal raha hai? (" + err.message + ")";
         setExecStatus("Error", "error");
         runCBtn.disabled = false;
         runBatchBtn.disabled = false;
@@ -2602,13 +2398,33 @@ int main() {
     runCBtn.addEventListener("click", () => triggerRunFlow(false));
     runBatchBtn.addEventListener("click", () => triggerRunFlow(true));
 
-    clearRunnerBtn.addEventListener("click", async () => {
+    // Clear Menu (Output Only or Editor with Confirmation + Undo)
+    clearOutputOnlyBtn.addEventListener("click", async () => {
+      closeAllPopovers();
+      await closeActiveSessionOnServer(true);
+      cOutputText.innerHTML = "";
+      batchVerdictBadge.classList.add("hidden");
+      setExecStatus("Ready");
+    });
+
+    clearRunnerBtn.addEventListener("click", () => {
+      closeAllPopovers();
+      confirmModal.classList.remove("hidden");
+    });
+
+    confirmCancelBtn.addEventListener("click", () => confirmModal.classList.add("hidden"));
+    confirmModal.addEventListener("click", (e) => {
+      if (e.target === confirmModal) confirmModal.classList.add("hidden");
+    });
+
+    confirmProceedBtn.addEventListener("click", async () => {
+      confirmModal.classList.add("hidden");
       await closeActiveSessionOnServer(true);
       const prevCode = cCodeInput.value;
       setEditorFullText("");
       saveTabs();
       cOutputText.innerHTML = "";
-      batchVerdictBadge.classList.add("hidden-el");
+      batchVerdictBadge.classList.add("hidden");
       clearErrorMarker();
       setExecStatus("Cleared");
       runCBtn.disabled = false;
@@ -2633,7 +2449,7 @@ int main() {
       if (!txt) return;
       navigator.clipboard?.writeText(txt).catch(() => {});
       const prev = copyOutputBtn.textContent;
-      copyOutputBtn.textContent = "Copied";
+      copyOutputBtn.textContent = "Copied!";
       showToast("Output copied to clipboard");
       setTimeout(() => {
         copyOutputBtn.textContent = prev;
@@ -2649,8 +2465,6 @@ int main() {
     cCodeInput.value = initialTab ? initialTab.code : DEFAULT_CODE;
     applyLanguageUI(initialTab ? (initialTab.lang || detectLangFromFilename(initialTab.name)) : "c");
     syncEditorVisuals(false);
-    applyPaneSizes();
   </script>
-  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 </body>
 </html>
